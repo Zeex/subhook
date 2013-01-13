@@ -37,6 +37,9 @@ int main() {
   /* Install our newly created hook so from now on any call to foo()
    * will be redirected to my_foo(). */ 
   subhook_install(foo_hook);
+  
+  /* Free the memory when you're done. */
+  subhook_free(foo_hook);
 }
 ```
 
