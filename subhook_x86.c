@@ -49,8 +49,11 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	src = subhook_get_source(hook);
 	dst = subhook_get_destination(hook);
 
-	if ((hook->arch = malloc(sizeof(struct subhook_x86))) == NULL)
-		return -ENOMEM;
+	/* allocate machine-specific data on frist install */
+	if (hook->arch == NULL) {
+		if ((hook->arch = malloc(sizeof(struct subhook_x86))) == NULL)
+			return -ENOMEM;
+	}
 
 	subhook_unprotect(src, SUBHOOK_JUMP_SIZE);
 	memcpy(((struct subhook_x86 *)hook->arch)->code, src, SUBHOOK_JUMP_SIZE);
