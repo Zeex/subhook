@@ -58,12 +58,12 @@ int main() {
 SubHook foo_hook;
 
 void my_foo(int x) {
-  SubHook::ScopedRemove(&foo_hook);
+  // ScopedRemove removes the specified hook and automatically re-installs it
+  // when it goes out of scope (thanks to C++ destructors).
+  SubHook::ScopedRemove remove(&foo_hook);
 
   std::cout << "foo(" << x < ") called" << std::endl;
   foo(x);
-
-  /* The hook wll be re-installed automatically upon return. */
 }
 
 int main() {
