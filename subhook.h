@@ -189,6 +189,10 @@ public:
 		}
 
 	private:
+		ScopedRemove(const ScopedRemove &);
+		void operator=(const ScopedRemove &);
+
+	private:
 		SubHook *hook_;
 		bool removed_;
 	};
@@ -206,6 +210,10 @@ public:
 				hook_->Remove();
 			}
 		}
+
+	private:
+		ScopedInstall(const ScopedInstall &);
+		void operator=(const ScopedInstall &);
 
 	private:
 		SubHook *hook_;
