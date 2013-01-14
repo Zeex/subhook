@@ -29,11 +29,21 @@
 #include "subhook_private.h"
 
 SUBHOOK_EXPORT struct subhook *SUBHOOK_API subhook_new() {
-	return (struct subhook *)calloc(1, sizeof(struct subhook));
+	struct subhook *hook;
+	
+	if ((hook = (struct subhook *)calloc(1, sizeof(struct subhook))) == NULL)
+		return NULL;
+
+	if (subhook_arch_new(hook) < 0) {
+		free(hook);
+		return NULL;
+	}
+
+	return hook;
 }
 
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(struct subhook *hook) {
-	free(hook->arch);
+	subhook_arch_free(hook);
 	free(hook);
 }
 

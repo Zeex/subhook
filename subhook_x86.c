@@ -38,6 +38,17 @@ struct subhook_x86 {
 	unsigned char code[SUBHOOK_JUMP_SIZE];
 };
 
+int subhook_arch_new(struct subhook *hook) {
+	if ((hook->arch = malloc(sizeof(struct subhook_x86))) == NULL)
+		return -ENOMEM;
+
+	return 0;
+}
+
+void subhook_arch_free(struct subhook *hook) {
+	free(hook->arch);
+}
+
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	static const unsigned char jmp = 0xE9;
 	void *src, *dst;
@@ -48,12 +59,6 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 
 	src = subhook_get_source(hook);
 	dst = subhook_get_destination(hook);
-
-	/* allocate machine-specific data on frist install */
-	if (hook->arch == NULL) {
-		if ((hook->arch = malloc(sizeof(struct subhook_x86))) == NULL)
-			return -ENOMEM;
-	}
 
 	subhook_unprotect(src, SUBHOOK_JUMP_SIZE);
 	memcpy(((struct subhook_x86 *)hook->arch)->code, src, SUBHOOK_JUMP_SIZE);
