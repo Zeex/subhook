@@ -57,8 +57,8 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	if (subhook_is_installed(hook))
 		return -EINVAL;
 
-	src = subhook_get_source(hook);
-	dst = subhook_get_destination(hook);
+	src = subhook_get_src(hook);
+	dst = subhook_get_dst(hook);
 
 	subhook_unprotect(src, SUBHOOK_JUMP_SIZE);
 	memcpy(((struct subhook_x86 *)hook->arch)->code, src, SUBHOOK_JUMP_SIZE);
@@ -79,13 +79,13 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook) {
 	if (!subhook_is_installed(hook))
 		return -EINVAL;
 
-	memcpy(subhook_get_source(hook), ((struct subhook_x86 *)hook->arch)->code, SUBHOOK_JUMP_SIZE);
+	memcpy(subhook_get_src(hook), ((struct subhook_x86 *)hook->arch)->code, SUBHOOK_JUMP_SIZE);
 	subhook_set_flags(hook, subhook_get_flags(hook) & ~(SUBHOOK_FLAG_INSTALLED));
 
 	return 0;
 }
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_destination(void *src) {
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src) {
 	if (*(unsigned char*)src == 0xE9)
 		return (void *)(*(int *)((int)src + 1) + (int)src + SUBHOOK_JUMP_SIZE);
 

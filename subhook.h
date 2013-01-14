@@ -84,11 +84,11 @@
 SUBHOOK_EXPORT struct subhook *SUBHOOK_API subhook_new();
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(struct subhook *hook);
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_source(struct subhook *hook, void *src);
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_source(struct subhook *hook);
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(struct subhook *hook, void *src);
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(struct subhook *hook);
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_destination(struct subhook *hook, void *dst);
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_destination(struct subhook *hook);
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(struct subhook *hook, void *dst);
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(struct subhook *hook);
 
 /* These return 0 on failure and 1 on success. */
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook);
@@ -109,12 +109,12 @@ static int subhook_is_installed(struct subhook *hook) {
  * This is useful when you don't know the address or want to check
  * whether src has been hooked with subhook.
  */
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_destination(void *src);
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
-#define SUBHOOK_INSTALL_HOOK(hook, src, dest) \
+#define SUBHOOK_INSTALL_HOOK(hook, src, dst) \
 	do {\
-		subhook_set_source(hook, src);\
-		subhook_set_destination(hook, dest);\
+		subhook_set_src(hook, src);\
+		subhook_set_dst(hook, dst);\
 		subhook_install(hook);\
 	} while (0);
 
@@ -124,14 +124,14 @@ class SubHook {
 public:
 	SubHook() {
 		hook_ = subhook_new();
-		subhook_set_source(hook_, 0);
-		subhook_set_destination(hook_, 0);
+		subhook_set_src(hook_, 0);
+		subhook_set_dst(hook_, 0);
 	}
 
 	SubHook(void *src, void *dst) {
 		hook_ = subhook_new();
-		subhook_set_source(hook_, src);
-		subhook_set_destination(hook_, dst);
+		subhook_set_src(hook_, src);
+		subhook_set_dst(hook_, dst);
 	}
 
 	~SubHook() {
@@ -152,8 +152,8 @@ public:
 
 	bool Install(void *src, void *dst) {
 		if (!installed_) {
-			subhook_set_source(hook_, src);
-			subhook_set_destination(hook_, dst);
+			subhook_set_src(hook_, src);
+			subhook_set_dst(hook_, dst);
 			subhook_install(hook_);
 			installed_ = true;
 			return true;

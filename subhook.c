@@ -47,19 +47,19 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_free(struct subhook *hook) {
 	free(hook);
 }
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_source(struct subhook *hook) {
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(struct subhook *hook) {
 	return hook->src;
 }
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_destination(struct subhook *hook) {
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(struct subhook *hook) {
 	return hook->dst;
 }
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_source(struct subhook *hook, void *src) {
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(struct subhook *hook, void *src) {
 	hook->src = src;
 }
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_destination(struct subhook *hook, void *dst) {
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(struct subhook *hook, void *dst) {
 	hook->dst = dst;
 }
 
