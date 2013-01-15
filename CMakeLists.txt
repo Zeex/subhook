@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 project(subhook)
 
+option(SUBHOOK_INSTALL "Generate install target" OFF)
+option(SUBHOOK_PACKAGE "Generate package target" OFF)
+
 set(SUBHOOK_HEADERS "subhook.h")
 set(SUBHOOK_SOURCES "subhook.c" "subhook_private.h")
 
