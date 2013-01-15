@@ -24,6 +24,7 @@
  */
 
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
@@ -31,10 +32,10 @@
 #include "subhook.h"
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_unprotect(void *address, size_t size) {
-	size_t pagesize;
+	intptr_t pagesize;
 
 	pagesize = sysconf(_SC_PAGESIZE);
-	address = (void*)((size_t)address & ~(pagesize - 1));
+	address = (void *)((intptr_t)address & ~(pagesize - 1));
 
 	if (mprotect(address, size, PROT_READ | PROT_WRITE | PROT_EXEC) == 0) {
 		return address;
