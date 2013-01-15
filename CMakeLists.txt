@@ -23,3 +23,7 @@ if(SUBHOOK_INSTALL)
 	                        RUNTIME DESTINATION "bin")
 	install(FILES ${SUBHOOK_HEADERS} DESTINATION "include")
 endif()
+
+if(SUBHOOK_PACKAGE)
+	include(CPack)
+endif()
