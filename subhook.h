@@ -141,6 +141,9 @@ public:
 		}
 	}
 
+	void *GetSrc() { return subhook_get_src(hook_); }
+	void *GetDst() { return subhook_get_dst(hook_); }
+
 	bool Install() {
 		if (!installed_) {
 			subhook_install(hook_);
