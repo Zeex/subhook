@@ -220,6 +220,10 @@ public:
 		bool installed_;
 	};
 
+	static void *ReadDst(void *src) {
+		return subhook_read_dst(src);
+	}
+
 private:
 	SubHook(const SubHook &);
 	void operator=(const SubHook &);
