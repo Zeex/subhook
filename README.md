@@ -13,7 +13,7 @@ convention unless you specify otherwise).
 
 ### C
 
-```C
+```c
 #include <stdio.h>
 #include <subhook.h>
 
@@ -51,7 +51,7 @@ int main() {
 
 ### C++
 
-```C++
+```c++
 #include <iostream>
 #include <subhook.h>
 
