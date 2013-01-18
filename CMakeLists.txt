@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(subhook)
 
+option(SUBHOOK_TESTING "Build tests" OFF)
 option(SUBHOOK_INSTALL "Generate install target" OFF)
 option(SUBHOOK_PACKAGE "Generate package target" OFF)
 
@@ -29,4 +30,10 @@ endif()
 
 if(SUBHOOK_PACKAGE)
 	include(CPack)
+endif()
+
+if(SUBHOOK_TESTING)
+	include(CTest)
+	enable_testing()
+	add_subdirectory(test)
 endif()
