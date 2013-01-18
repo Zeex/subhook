@@ -77,6 +77,6 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_set_flags(struct subhook *hook, int flag
 	#include "subhook_linux.c"
 #endif
 
-#if defined SUBHOOK_X86
+#if defined SUBHOOK_X86 || defined SUBHOOK_X86_64
 	#include "subhook_x86.c"
 #endif

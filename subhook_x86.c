@@ -28,10 +28,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+	#if defined SUBHOOK_X86
+		typedef __int32 intptr_t;
+	#elif defined SUBHOOK_X86_64
+		typedef __int64 intptr_t;
+	#endif
+#else
+	#include <stdint.h>
+#endif
+
 #include "subhook.h"
 #include "subhook_private.h"
 
-/* 1 byte for opcode + 4 for address */
 #define SUBHOOK_JUMP_SIZE 5
 
 struct subhook_x86 {
@@ -52,7 +61,7 @@ void subhook_arch_free(struct subhook *hook) {
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	static const unsigned char jmp = 0xE9;
 	void *src, *dst;
-	int offset;
+	intptr_t offset;
 
 	if (subhook_is_installed(hook))
 		return -EINVAL;
@@ -67,8 +76,8 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	memcpy(src, &jmp, sizeof(jmp));
 
 	/* jump address is relative to next instruction */
-	offset = (int)dst - ((int)src + SUBHOOK_JUMP_SIZE);
-	memcpy((void*)((int)src + 1), &offset, SUBHOOK_JUMP_SIZE - sizeof(jmp));
+	offset = (intptr_t)dst - ((intptr_t)src + SUBHOOK_JUMP_SIZE);
+	memcpy((void*)((intptr_t)src + 1), &offset, SUBHOOK_JUMP_SIZE - sizeof(jmp));
 
 	subhook_set_flags(hook, subhook_get_flags(hook) | SUBHOOK_FLAG_INSTALLED);
 
@@ -87,7 +96,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook) {
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src) {
 	if (*(unsigned char*)src == 0xE9)
-		return (void *)(*(int *)((int)src + 1) + (int)src + SUBHOOK_JUMP_SIZE);
+		return (void *)(*(intptr_t *)((intptr_t)src + 1) + (intptr_t)src + SUBHOOK_JUMP_SIZE);
 
 	return NULL;
 }

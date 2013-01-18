@@ -30,6 +30,8 @@
 
 #if defined _M_IX86 || defined __i386__
 	#define SUBHOOK_X86
+#elif defined _M_AMD64 || __amd64__
+	#define SUBHOOK_X86_64
 #else
 	#error Unsupported architecture
 #endif
@@ -56,10 +58,14 @@
 #endif
 
 #if !defined SUBHOOK_API
-	#if defined SUBHOOK_WINDOWS
-		#define SUBHOOK_API __cdecl
-	#elif defined SUBHOOK_LINUX
-		#define SUBHOOK_API __attribute__((cdecl))
+	#if defined SUBHOOK_X86
+		#if defined SUBHOOK_WINDOWS
+			#define SUBHOOK_API __cdecl
+		#elif defined SUBHOOK_LINUX
+			#define SUBHOOK_API __attribute__((cdecl))
+		#endif
+	#else
+		#define SUBHOOK_API 
 	#endif
 #endif
 
@@ -236,6 +242,6 @@ private:
 	bool installed_;
 };
 
-#endif
+#endif /* __cplusplus */
 
 #endif /* SUBHOOK_H */
