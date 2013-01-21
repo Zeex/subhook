@@ -24,6 +24,7 @@ endif()
 
 if(SUBHOOK_INSTALL)
 	install(TARGETS subhook LIBRARY DESTINATION "lib"
+	                        ARCHIVE DESTINATION "lib"
 	                        RUNTIME DESTINATION "bin")
 	install(FILES ${SUBHOOK_HEADERS} DESTINATION "include")
 endif()
