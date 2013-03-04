@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(subhook)
 
-option(SUBHOOK_TESTING "Build tests" OFF)
-option(SUBHOOK_INSTALL "Generate install target" OFF)
-option(SUBHOOK_PACKAGE "Generate package target" OFF)
+set(SUBHOOK_TESTING FALSE CACHE BOOL "Build tests")
+set(SUBHOOK_INSTALL FALSE CACHE BOOL "Create install target")
+set(SUBHOOK_PACKAGE FALSE CACHE BOOL "Create package target")
+mark_as_advanced(SUBHOOK_TESTING SUBHOOK_INSTALL SUBHOOK_PACKAGE)
 
 set(SUBHOOK_HEADERS "subhook.h")
 set(SUBHOOK_SOURCES "subhook.c" "subhook_private.h")
