@@ -1,11 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project(subhook)
 
-set(SUBHOOK_TESTING FALSE CACHE BOOL "Build tests")
-set(SUBHOOK_INSTALL FALSE CACHE BOOL "Create install target")
-set(SUBHOOK_PACKAGE FALSE CACHE BOOL "Create package target")
-mark_as_advanced(SUBHOOK_TESTING SUBHOOK_INSTALL SUBHOOK_PACKAGE)
-
 set(SUBHOOK_HEADERS "subhook.h")
 set(SUBHOOK_SOURCES "subhook.c" "subhook_private.h")
 
@@ -25,6 +20,9 @@ if(SUBHOOK_STATIC)
 	set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY COMPILE_DEFINITIONS "SUBHOOK_STATIC")
 endif()
 
+set(SUBHOOK_STATIC ${SUBHOOK_STATIC} CACHE BOOL "Whether building subhook as static library")
+mark_as_advanced(SUBHOOK_STATIC)
+
 if(SUBHOOK_INSTALL)
 	install(TARGETS subhook LIBRARY DESTINATION "lib"
 	                        ARCHIVE DESTINATION "lib"
@@ -32,12 +30,21 @@ if(SUBHOOK_INSTALL)
 	install(FILES ${SUBHOOK_HEADERS} DESTINATION "include")
 endif()
 
+set(SUBHOOK_INSTALL FALSE CACHE BOOL "Create install target")
+mark_as_advanced(SUBHOOK_INSTALL)
+
 if(SUBHOOK_PACKAGE)
 	include(CPack)
 endif()
+
+set(SUBHOOK_PACKAGE FALSE CACHE BOOL "Create package target")
+mark_as_advanced(SUBHOOK_PACKAGE)
 
 if(SUBHOOK_TESTING)
 	include(CTest)
 	enable_testing()
 	add_subdirectory(test)
 endif()
+
+set(SUBHOOK_TESTING FALSE CACHE BOOL "Build tests")
+mark_as_advanced(SUBHOOK_TESTING)
