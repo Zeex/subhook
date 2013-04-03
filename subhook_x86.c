@@ -28,7 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef SUBHOOK_WINDOWS
+#if defined _MSC_VER
 	#if defined SUBHOOK_X86
 		typedef __int32 intptr_t;
 	#elif defined SUBHOOK_X86_64
