@@ -67,7 +67,7 @@ void my_foo(int x) {
 }
 
 int main() {
-  hook.Install((void*)foo, (void*)my_foo);
+  foo_hook.Install((void*)foo, (void*)my_foo);
 }
 
 ```
