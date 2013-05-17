@@ -85,8 +85,6 @@
 	#endif
 #endif
 
-#define SUBHOOK_FLAG_INSTALLED 0x01
-
 SUBHOOK_EXPORT struct subhook *SUBHOOK_API subhook_new();
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(struct subhook *hook);
 
@@ -100,15 +98,11 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(struct subhook *hook);
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook);
 SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook);
 
-SUBHOOK_EXPORT int SUBHOOK_API subhook_get_flags(struct subhook *hook);
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_flags(struct subhook *hook, int flags);
+/* Checks whether a hook has been installed. */
+SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(struct subhook *hook);
 
 /* Sets read+write+execute permissions for memory region. */
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_unprotect(void *address, size_t size);
-
-static int subhook_is_installed(struct subhook *hook) {
-	return (subhook_get_flags(hook) & SUBHOOK_FLAG_INSTALLED) != 0;
-}
 
 /* Reads hook destination address from code.
  *

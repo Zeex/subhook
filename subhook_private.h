@@ -27,7 +27,7 @@
 #define SUBHOOK_PRIVATE_H
 
 struct subhook {
-	int flags;
+	int installed: 1;
 	void *src;
 	void *dst;
 	void *arch; /* architecture-specific information */

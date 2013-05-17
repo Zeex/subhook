@@ -63,12 +63,8 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(struct subhook *hook, void *dst)
 	hook->dst = dst;
 }
 
-SUBHOOK_EXPORT int SUBHOOK_API subhook_get_flags(struct subhook *hook) {
-	return hook->flags;
-}
-
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_flags(struct subhook *hook, int flags) {
-	hook->flags = flags;
+SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(struct subhook *hook) {
+	return hook->installed;
 }
 
 #if defined SUBHOOK_WINDOWS

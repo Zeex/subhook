@@ -79,7 +79,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	offset = (intptr_t)dst - ((intptr_t)src + SUBHOOK_JUMP_SIZE);
 	memcpy((void*)((intptr_t)src + 1), &offset, SUBHOOK_JUMP_SIZE - sizeof(jmp));
 
-	subhook_set_flags(hook, subhook_get_flags(hook) | SUBHOOK_FLAG_INSTALLED);
+	hook->installed = 1;
 
 	return 0;
 }
@@ -89,7 +89,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook) {
 		return -EINVAL;
 
 	memcpy(subhook_get_src(hook), ((struct subhook_x86 *)hook->arch)->code, SUBHOOK_JUMP_SIZE);
-	subhook_set_flags(hook, subhook_get_flags(hook) & ~(SUBHOOK_FLAG_INSTALLED));
+	hook->installed = 0;
 
 	return 0;
 }
