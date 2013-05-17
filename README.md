@@ -1,8 +1,5 @@
 [SubHook][github] is a super-simple library for setting function hooks at run
-time and it works on both Linux and Windows. Currently only x86 is supported
-but the API is easily portable to other architectures.
-
-
+time and it works on both Linux and Windows. Currently it supports only x86.
 Examples
 --------
 
