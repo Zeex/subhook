@@ -1,5 +1,6 @@
-[SubHook][github] is a super-simple library for setting function hooks at run
-time and it works on both Linux and Windows. Currently it supports only x86.
+[SubHook][github] is a super-simple hooking library for C/C++ that works on
+both Linux and Windows. Currently supports only x86.
+
 Examples
 --------
 
