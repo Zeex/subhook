@@ -4,10 +4,9 @@ both Linux and Windows. Currently supports only x86.
 Examples
 --------
 
-In the following examples `foo` is a hypothetical function or function pointer
-that takes a single argument `int x` and uses the same calling convention as
-`my_foo` (for instance, on x86 most compilers use the [`cdecl`][cdecl] calling
-convention unless you specify otherwise).
+In the following examples `foo` is some function or a function pointer that
+takes a single argument of type `int` and uses the same calling convention
+as `my_foo` (depends on compiler).
 
 ### C
 
