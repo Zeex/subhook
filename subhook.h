@@ -98,7 +98,7 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(struct subhook *hook);
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook);
 SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook);
 
-/* Checks whether a hook has been installed. */
+/* Checks whether the hook is installed. */
 SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(struct subhook *hook);
 
 /* Reads hook destination address from code.
