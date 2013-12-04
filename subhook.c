@@ -28,10 +28,10 @@
 #include "subhook.h"
 #include "subhook_private.h"
 
-SUBHOOK_EXPORT struct subhook *SUBHOOK_API subhook_new() {
-	struct subhook *hook;
-	
-	if ((hook = (struct subhook *)calloc(1, sizeof(struct subhook))) == NULL)
+SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new() {
+	subhook_t hook;
+
+	if ((hook = calloc(1, sizeof(*hook))) == NULL)
 		return NULL;
 
 	if (subhook_arch_new(hook) < 0) {
@@ -42,28 +42,28 @@ SUBHOOK_EXPORT struct subhook *SUBHOOK_API subhook_new() {
 	return hook;
 }
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_free(struct subhook *hook) {
+SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
 	subhook_arch_free(hook);
 	free(hook);
 }
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(struct subhook *hook) {
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook) {
 	return hook->src;
 }
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(struct subhook *hook) {
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(subhook_t hook) {
 	return hook->dst;
 }
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(struct subhook *hook, void *src) {
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(subhook_t hook, void *src) {
 	hook->src = src;
 }
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(struct subhook *hook, void *dst) {
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(subhook_t hook, void *dst) {
 	hook->dst = dst;
 }
 
-SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(struct subhook *hook) {
+SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook) {
 	return hook->installed;
 }
 

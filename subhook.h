@@ -85,21 +85,24 @@
 	#endif
 #endif
 
-SUBHOOK_EXPORT struct subhook *SUBHOOK_API subhook_new();
-SUBHOOK_EXPORT void SUBHOOK_API subhook_free(struct subhook *hook);
+struct subhook;
+typedef struct subhook *subhook_t;
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(struct subhook *hook, void *src);
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(struct subhook *hook);
+SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new();
+SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook);
 
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(struct subhook *hook, void *dst);
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(struct subhook *hook);
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(subhook_t hook, void *src);
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook);
+
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(subhook_t hook, void *dst);
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(subhook_t hook);
 
 /* These return 0 on failure and 1 on success. */
-SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook);
-SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook);
+SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook);
+SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook);
 
 /* Checks whether the hook is installed. */
-SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(struct subhook *hook);
+SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook);
 
 /* Reads hook destination address from code.
  *
@@ -176,7 +179,7 @@ public:
 
 	class ScopedRemove {
 	public:
-		ScopedRemove(SubHook *hook)
+		ScopedRemove(subhook_t hook)
 			: hook_(hook)
 			, removed_(hook_->Remove())
 		{
@@ -193,13 +196,13 @@ public:
 		void operator=(const ScopedRemove &);
 
 	private:
-		SubHook *hook_;
+		subhook_t hook_;
 		bool removed_;
 	};
 
 	class ScopedInstall {
 	public:
-		ScopedInstall(SubHook *hook)
+		ScopedInstall(subhook_t hook)
 			: hook_(hook)
 			, installed_(hook_->Install())
 		{
@@ -216,7 +219,7 @@ public:
 		void operator=(const ScopedInstall &);
 
 	private:
-		SubHook *hook_;
+		subhook_t hook_;
 		bool installed_;
 	};
 
@@ -229,7 +232,7 @@ private:
 	void operator=(const SubHook &);
 
 private:
-	subhook *hook_;
+	subhook_t hook_;
 	bool installed_;
 };
 

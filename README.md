@@ -14,7 +14,7 @@ as `my_foo` (depends on compiler).
 #include <stdio.h>
 #include <subhook.h>
 
-struct subhook *foo_hook;
+subhook_t *foo_hook;
 
 void my_foo(int x) {
   /* Sometimes you want to call the original function. */
@@ -38,9 +38,9 @@ int main() {
   subhook_set_dst((void*)my_foo);
 
   /* Install our newly created hook so from now on any call to foo()
-   * will be redirected to my_foo(). */ 
+   * will be redirected to my_foo(). */
   subhook_install(foo_hook);
-  
+
   /* Free the memory when you're done. */
   subhook_free(foo_hook);
 }

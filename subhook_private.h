@@ -33,8 +33,8 @@ struct subhook {
 	void *arch; /* architecture-specific information */
 };
 
-int subhook_arch_new(struct subhook *hook);
-void subhook_arch_free(struct subhook *hook);
+int subhook_arch_new(subhook_t hook);
+void subhook_arch_free(subhook_t hook);
 
 void *subhook_unprotect(void *address, size_t size);
 

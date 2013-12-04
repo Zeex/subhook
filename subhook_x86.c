@@ -47,18 +47,18 @@ struct subhook_x86 {
 	unsigned char code[SUBHOOK_JUMP_SIZE];
 };
 
-int subhook_arch_new(struct subhook *hook) {
+int subhook_arch_new(subhook_t hook) {
 	if ((hook->arch = malloc(sizeof(struct subhook_x86))) == NULL)
 		return -ENOMEM;
 
 	return 0;
 }
 
-void subhook_arch_free(struct subhook *hook) {
+void subhook_arch_free(subhook_t hook) {
 	free(hook->arch);
 }
 
-SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
+SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 	static const unsigned char jmp = 0xE9;
 	void *src, *dst;
 	intptr_t offset;
@@ -72,7 +72,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	subhook_unprotect(src, SUBHOOK_JUMP_SIZE);
 	memcpy(((struct subhook_x86 *)hook->arch)->code, src, SUBHOOK_JUMP_SIZE);
 
-	/* E9 - jump near, relative */	
+	/* E9 - jump near, relative */
 	memcpy(src, &jmp, sizeof(jmp));
 
 	/* jump address is relative to next instruction */
@@ -84,7 +84,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(struct subhook *hook) {
 	return 0;
 }
 
-SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook) {
+SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 	if (!subhook_is_installed(hook))
 		return -EINVAL;
 

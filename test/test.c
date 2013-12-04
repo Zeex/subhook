@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <subhook.h>
 
-struct subhook *hfoo, *hbar;
+subhook_t hfoo, hbar;
 
 void foo() {
 	printf("foo() called\n");
