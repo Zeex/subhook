@@ -36,4 +36,6 @@ struct subhook {
 int subhook_arch_new(struct subhook *hook);
 void subhook_arch_free(struct subhook *hook);
 
+void *subhook_unprotect(void *address, size_t size);
+
 #endif /* SUBHOOK_PRIVATE_H */

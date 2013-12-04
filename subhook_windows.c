@@ -29,7 +29,7 @@
 
 #include "subhook.h"
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_unprotect(void *address, size_t size) {
+void *subhook_unprotect(void *address, size_t size) {
 	DWORD oldProtect;
 
 	if (VirtualProtect(address, size, PAGE_EXECUTE_READWRITE, &oldProtect) != 0) {

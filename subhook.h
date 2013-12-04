@@ -47,7 +47,7 @@
 #if !defined SUHOOK_EXTERN
 	#if defined __cplusplus
 		#define SUBHOOK_EXTERN extern "C"
-	#else 
+	#else
 		#define SUBHOOK_EXTERN extern
 	#endif
 #endif
@@ -65,7 +65,7 @@
 			#define SUBHOOK_API __attribute__((cdecl))
 		#endif
 	#else
-		#define SUBHOOK_API 
+		#define SUBHOOK_API
 	#endif
 #endif
 
@@ -100,9 +100,6 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(struct subhook *hook);
 
 /* Checks whether a hook has been installed. */
 SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(struct subhook *hook);
-
-/* Sets read+write+execute permissions for memory region. */
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_unprotect(void *address, size_t size);
 
 /* Reads hook destination address from code.
  *

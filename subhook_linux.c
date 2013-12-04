@@ -31,7 +31,7 @@
 
 #include "subhook.h"
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_unprotect(void *address, size_t size) {
+void *subhook_unprotect(void *address, size_t size) {
 	intptr_t pagesize;
 
 	pagesize = sysconf(_SC_PAGESIZE);
