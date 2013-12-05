@@ -1,5 +1,5 @@
 [SubHook][github] is a super-simple hooking library for C/C++ that works on
-both Linux and Windows. Currently supports only x86.
+both Linux and Windows. It currently supports only x86 and x86-64.
 
 Examples
 --------
