@@ -41,14 +41,19 @@
 #include "subhook.h"
 #include "subhook_private.h"
 
-#define SUBHOOK_JUMP_SIZE 5
+#define JMP_OPCODE 0xE9
+
+static const unsigned char jmp_opcode = JMP_OPCODE;
+static const unsigned char jmp_instr[] = { JMP_OPCODE, 0x0, 0x0, 0x0, 0x0 };
 
 struct subhook_x86 {
-	unsigned char code[SUBHOOK_JUMP_SIZE];
+	unsigned char code[sizeof(jmp_instr)];
 };
 
 int subhook_arch_new(subhook_t hook) {
-	if ((hook->arch = malloc(sizeof(struct subhook_x86))) == NULL)
+	hook->arch = malloc(sizeof(struct subhook_x86));
+
+	if (hook->arch == NULL)
 		return -ENOMEM;
 
 	return 0;
@@ -59,8 +64,8 @@ void subhook_arch_free(subhook_t hook) {
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
-	static const unsigned char jmp = 0xE9;
-	void *src, *dst;
+	void *src;
+	void *dst;
 	intptr_t offset;
 
 	if (subhook_is_installed(hook))
@@ -69,18 +74,15 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 	src = subhook_get_src(hook);
 	dst = subhook_get_dst(hook);
 
-	subhook_unprotect(src, SUBHOOK_JUMP_SIZE);
-	memcpy(((struct subhook_x86 *)hook->arch)->code, src, SUBHOOK_JUMP_SIZE);
+	subhook_unprotect(src, sizeof(jmp_instr));
+	memcpy(((struct subhook_x86 *)hook->arch)->code, src, sizeof(jmp_instr));
+	memcpy(src, &jmp_instr, sizeof(jmp_instr));
 
-	/* E9 - jump near, relative */
-	memcpy(src, &jmp, sizeof(jmp));
-
-	/* jump address is relative to next instruction */
-	offset = (intptr_t)dst - ((intptr_t)src + SUBHOOK_JUMP_SIZE);
-	memcpy((void*)((intptr_t)src + 1), &offset, SUBHOOK_JUMP_SIZE - sizeof(jmp));
+	offset = (intptr_t)dst - ((intptr_t)src + sizeof(jmp_instr));
+	memcpy((void *)((intptr_t)src + sizeof(jmp_opcode)), &offset,
+	       sizeof(jmp_instr) - sizeof(jmp_opcode));
 
 	hook->installed = 1;
-
 	return 0;
 }
 
@@ -88,15 +90,25 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 	if (!subhook_is_installed(hook))
 		return -EINVAL;
 
-	memcpy(subhook_get_src(hook), ((struct subhook_x86 *)hook->arch)->code, SUBHOOK_JUMP_SIZE);
-	hook->installed = 0;
+	memcpy(subhook_get_src(hook), ((struct subhook_x86 *)hook->arch)->code,
+	       sizeof(jmp_instr));
 
+	hook->installed = 0;
 	return 0;
 }
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src) {
-	if (*(unsigned char*)src == 0xE9)
-		return (void *)(*(intptr_t *)((intptr_t)src + 1) + (intptr_t)src + SUBHOOK_JUMP_SIZE);
+	unsigned char opcode;
+	intptr_t src_addr = (intptr_t)src;
+	intptr_t dst_addr;
+	intptr_t *target;
 
-	return NULL;
+	memcpy(&opcode, src, sizeof(opcode));
+	if (opcode != jmp_opcode)
+		return NULL;
+
+	memcpy(&target, (void *)(src_addr + sizeof(jmp_opcode)), sizeof(*target));
+	dst_addr = *target + src_addr + sizeof(jmp_instr);
+
+	return (void *)dst_addr;
 }
