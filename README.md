@@ -14,7 +14,7 @@ as `my_foo` (depends on compiler).
 #include <stdio.h>
 #include <subhook.h>
 
-subhook_t *foo_hook;
+subhook_t foo_hook;
 
 void my_foo(int x) {
   /* Sometimes you want to call the original function. */
