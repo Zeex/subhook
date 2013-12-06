@@ -29,8 +29,6 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-#include "subhook.h"
-
 void *subhook_unprotect(void *address, size_t size) {
 	intptr_t pagesize;
 

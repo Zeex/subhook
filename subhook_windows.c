@@ -24,10 +24,7 @@
  */
 
 #include <stddef.h>
-#include <stdlib.h>
 #include <windows.h>
-
-#include "subhook.h"
 
 void *subhook_unprotect(void *address, size_t size) {
 	DWORD oldProtect;
