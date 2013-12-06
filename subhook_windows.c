@@ -27,11 +27,10 @@
 #include <windows.h>
 
 void *subhook_unprotect(void *address, size_t size) {
-	DWORD oldProtect;
+	DWORD old;
 
-	if (VirtualProtect(address, size, PAGE_EXECUTE_READWRITE, &oldProtect) != 0) {
-		return address;
-	}
+	if (VirtualProtect(address, size, PAGE_EXECUTE_READWRITE, &old) == 0)
+		return NULL;
 
-	return NULL;
+	return address;
 }

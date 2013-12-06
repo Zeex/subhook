@@ -120,7 +120,8 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
 #ifdef __cplusplus
 
-class SubHook {
+class SubHook
+{
 public:
 	SubHook() {
 		hook_ = subhook_new();
@@ -177,7 +178,8 @@ public:
 		return installed_;
 	}
 
-	class ScopedRemove {
+	class ScopedRemove
+	{
 	public:
 		ScopedRemove(subhook_t hook)
 			: hook_(hook)
@@ -200,7 +202,8 @@ public:
 		bool removed_;
 	};
 
-	class ScopedInstall {
+	class ScopedInstall
+	{
 	public:
 		ScopedInstall(subhook_t hook)
 			: hook_(hook)
