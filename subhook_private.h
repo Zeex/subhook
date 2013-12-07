@@ -30,11 +30,7 @@ struct subhook {
 	int installed: 1;
 	void *src;
 	void *dst;
-	void *arch; /* architecture-specific information */
 };
-
-int subhook_arch_new(subhook_t hook);
-void subhook_arch_free(subhook_t hook);
 
 void *subhook_unprotect(void *address, size_t size);
 

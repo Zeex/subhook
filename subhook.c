@@ -28,25 +28,6 @@
 #include "subhook.h"
 #include "subhook_private.h"
 
-SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new() {
-	subhook_t hook;
-
-	if ((hook = calloc(1, sizeof(*hook))) == NULL)
-		return NULL;
-
-	if (subhook_arch_new(hook) < 0) {
-		free(hook);
-		return NULL;
-	}
-
-	return hook;
-}
-
-SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
-	subhook_arch_free(hook);
-	free(hook);
-}
-
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook) {
 	return hook->src;
 }

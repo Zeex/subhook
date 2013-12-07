@@ -47,20 +47,21 @@ static const unsigned char jmp_opcode = JMP_OPCODE;
 static const unsigned char jmp_instr[] = { JMP_OPCODE, 0x0, 0x0, 0x0, 0x0 };
 
 struct subhook_x86 {
+	struct subhook _;
 	unsigned char code[sizeof(jmp_instr)];
 };
 
-int subhook_arch_new(subhook_t hook) {
-	hook->arch = malloc(sizeof(struct subhook_x86));
+SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new() {
+	struct subhook_x86 *hook;
 
-	if (hook->arch == NULL)
-		return -ENOMEM;
+	if ((hook = calloc(1, sizeof(*hook))) == NULL)
+		return NULL;
 
-	return 0;
+	return (subhook_t)hook;
 }
 
-void subhook_arch_free(subhook_t hook) {
-	free(hook->arch);
+SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
+	free(hook);
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
@@ -75,7 +76,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 	dst = subhook_get_dst(hook);
 
 	subhook_unprotect(src, sizeof(jmp_instr));
-	memcpy(((struct subhook_x86 *)hook->arch)->code, src, sizeof(jmp_instr));
+	memcpy(((struct subhook_x86 *)hook)->code, src, sizeof(jmp_instr));
 	memcpy(src, &jmp_instr, sizeof(jmp_instr));
 
 	offset = (intptr_t)dst - ((intptr_t)src + sizeof(jmp_instr));
@@ -90,7 +91,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 	if (!subhook_is_installed(hook))
 		return -EINVAL;
 
-	memcpy(subhook_get_src(hook), ((struct subhook_x86 *)hook->arch)->code,
+	memcpy(subhook_get_src(hook), ((struct subhook_x86 *)hook)->code,
 	       sizeof(jmp_instr));
 
 	hook->installed = 0;
