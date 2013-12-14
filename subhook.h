@@ -166,7 +166,7 @@ public:
 	class ScopedRemove
 	{
 	public:
-		ScopedRemove(subhook_t hook)
+		ScopedRemove(SubHook *hook)
 			: hook_(hook)
 			, removed_(hook_->Remove())
 		{
@@ -183,14 +183,14 @@ public:
 		void operator=(const ScopedRemove &);
 
 	private:
-		subhook_t hook_;
+		SubHook *hook_;
 		bool removed_;
 	};
 
 	class ScopedInstall
 	{
 	public:
-		ScopedInstall(subhook_t hook)
+		ScopedInstall(SubHook *hook)
 			: hook_(hook)
 			, installed_(hook_->Install())
 		{
@@ -207,7 +207,7 @@ public:
 		void operator=(const ScopedInstall &);
 
 	private:
-		subhook_t hook_;
+		SubHook *hook_;
 		bool installed_;
 	};
 
