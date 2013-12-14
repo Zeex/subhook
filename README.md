@@ -70,4 +70,3 @@ int main() {
 ```
 
 [github]: https://github.com/Zeex/subhook
-[cdecl]: http://en.wikipedia.org/wiki/X86_calling_conventions#cdecl
