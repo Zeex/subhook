@@ -123,59 +123,44 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 class SubHook
 {
 public:
-	SubHook() {
-		hook_ = subhook_new();
+	SubHook()
+		: hook_(subhook_new())
+	{
 		subhook_set_src(hook_, 0);
 		subhook_set_dst(hook_, 0);
 	}
 
-	SubHook(void *src, void *dst) {
-		hook_ = subhook_new();
+	SubHook(void *src, void *dst)
+		: hook_(subhook_new())
+	{
 		subhook_set_src(hook_, src);
 		subhook_set_dst(hook_, dst);
 	}
 
 	~SubHook() {
-		if (installed_) {
-			subhook_remove(hook_);
-			subhook_free(hook_);
-		}
+		subhook_remove(hook_);
+		subhook_free(hook_);
 	}
 
 	void *GetSrc() { return subhook_get_src(hook_); }
 	void *GetDst() { return subhook_get_dst(hook_); }
 
 	bool Install() {
-		if (!installed_) {
-			subhook_install(hook_);
-			installed_ = true;
-			return true;
-		}
-		return false;
+		return subhook_install(hook_) >= 0;
 	}
 
 	bool Install(void *src, void *dst) {
-		if (!installed_) {
-			subhook_set_src(hook_, src);
-			subhook_set_dst(hook_, dst);
-			subhook_install(hook_);
-			installed_ = true;
-			return true;
-		}
-		return false;
+		subhook_set_src(hook_, src);
+		subhook_set_dst(hook_, dst);
+		return Install();
 	}
 
 	bool Remove() {
-		if (installed_) {
-			subhook_remove(hook_);
-			installed_ = false;
-			return true;
-		}
-		return false;
+		return subhook_remove(hook_) >= 0;
 	}
 
 	bool IsInstalled() const {
-		return installed_;
+		return subhook_is_installed(hook_);
 	}
 
 	class ScopedRemove
@@ -236,7 +221,6 @@ private:
 
 private:
 	subhook_t hook_;
-	bool installed_;
 };
 
 #endif /* __cplusplus */
