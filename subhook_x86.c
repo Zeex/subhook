@@ -29,6 +29,7 @@
 #include <string.h>
 
 #if defined _MSC_VER
+	typedef __int32 int32_t;
 	#if defined SUBHOOK_X86
 		typedef __int32 intptr_t;
 	#elif defined SUBHOOK_X86_64
@@ -100,15 +101,13 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src) {
 	unsigned char opcode;
-	intptr_t *target;
+	int32_t offset;
 
 	memcpy(&opcode, src, sizeof(opcode));
-
 	if (opcode != jmp_opcode)
 		return NULL;
 
-	memcpy(&target, (void *)((intptr_t)src + sizeof(jmp_opcode)),
-	       sizeof(*target));
-	
-	return (void *)(*target + (intptr_t)src + sizeof(jmp_instr));
+	memcpy(&offset, (void *)((intptr_t)src + sizeof(jmp_opcode)),
+	       sizeof(offset));
+	return (void *)(offset + (intptr_t)src + sizeof(jmp_instr));
 }
