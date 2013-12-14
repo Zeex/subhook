@@ -1,10 +1,8 @@
+cmake_minimum_required(VERSION 2.8)
 project(subhook)
 
-cmake_minimum_required(VERSION 2.8)
-
-set(SUBHOOK_HEADERS "include/subhook.h")
-set(SUBHOOK_SOURCES "src/subhook.c"
-                    "src/subhook_private.h")
+set(SUBHOOK_HEADERS "subhook.h")
+set(SUBHOOK_SOURCES "subhook.c" "subhook_private.h")
 
 add_definitions(-DSUBHOOK_IMPLEMENTATION)
 
@@ -14,9 +12,9 @@ else()
 	add_library(subhook SHARED ${SUBHOOK_HEADERS} ${SUBHOOK_SOURCES})
 endif()
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY INCLUDE_DIRECTORIES
-             "${CMAKE_CURRENT_SOURCE_DIR}/include")
+             ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(SUBHOOK_STATIC)
 	add_definitions(-DSUBHOOK_STATIC)
