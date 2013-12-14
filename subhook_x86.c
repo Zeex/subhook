@@ -100,16 +100,15 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src) {
 	unsigned char opcode;
-	intptr_t src_addr = (intptr_t)src;
-	intptr_t dst_addr;
 	intptr_t *target;
 
 	memcpy(&opcode, src, sizeof(opcode));
+
 	if (opcode != jmp_opcode)
 		return NULL;
 
-	memcpy(&target, (void *)(src_addr + sizeof(jmp_opcode)), sizeof(*target));
-	dst_addr = *target + src_addr + sizeof(jmp_instr);
-
-	return (void *)dst_addr;
+	memcpy(&target, (void *)((intptr_t)src + sizeof(jmp_opcode)),
+	       sizeof(*target));
+	
+	return (void *)(*target + (intptr_t)src + sizeof(jmp_instr));
 }
