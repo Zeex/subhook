@@ -111,13 +111,6 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook);
  */
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
-#define SUBHOOK_INSTALL_HOOK(hook, src, dst) \
-	do {\
-		subhook_set_src(hook, src);\
-		subhook_set_dst(hook, dst);\
-		subhook_install(hook);\
-	} while (0);
-
 #ifdef __cplusplus
 
 class SubHook
