@@ -46,7 +46,7 @@ void test_bar() {
 	subhook_free(hbar);
 }
 
-int main(int argc, char **argv) {
+int main() {
 	test_foo();
 	test_bar();
 }
