@@ -153,7 +153,7 @@ public:
 	}
 
 	bool IsInstalled() const {
-		return subhook_is_installed(hook_);
+		return !!subhook_is_installed(hook_);
 	}
 
 	class ScopedRemove
