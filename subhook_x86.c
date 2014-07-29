@@ -66,22 +66,21 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
-	void *src;
-	void *dst;
 	intptr_t offset;
 
 	if (hook->installed)
 		return -EINVAL;
 
-	src = hook->src;
-	dst = hook->dst;
+	if (!hook->unlocked) {
+		subhook_unprotect(hook->src, sizeof(jmp_instr));
+		hook->unlocked = 1;
+	}
 
-	subhook_unprotect(src, sizeof(jmp_instr));
-	memcpy(((struct subhook_x86 *)hook)->code, src, sizeof(jmp_instr));
-	memcpy(src, &jmp_instr, sizeof(jmp_instr));
+	memcpy(((struct subhook_x86 *)hook)->code, hook->src, sizeof(jmp_instr));
+	memcpy(hook->src, &jmp_instr, sizeof(jmp_instr));
 
-	offset = (intptr_t)dst - ((intptr_t)src + sizeof(jmp_instr));
-	memcpy((void *)((intptr_t)src + sizeof(jmp_opcode)), &offset,
+	offset = (intptr_t)hook->dst - ((intptr_t)hook->src + sizeof(jmp_instr));
+	memcpy((void *)((intptr_t)hook->src + sizeof(jmp_opcode)), &offset,
 	       sizeof(jmp_instr) - sizeof(jmp_opcode));
 
 	hook->installed = 1;

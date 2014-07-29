@@ -91,13 +91,15 @@ typedef struct subhook *subhook_t;
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new();
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook);
 
+/* Set hook source and destination.
+ * Do NOT call these functions after subhook_install() !!
+ */
 SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(subhook_t hook, void *src);
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook);
-
 SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(subhook_t hook, void *dst);
+
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook);
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(subhook_t hook);
 
-/* These return 0 on failure and 1 on success. */
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook);
 SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook);
 

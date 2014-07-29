@@ -27,7 +27,8 @@
 #define SUBHOOK_PRIVATE_H
 
 struct subhook {
-	int installed: 1;
+	int unlocked  : 1;
+	int installed : 1;
 	void *src;
 	void *dst;
 };
