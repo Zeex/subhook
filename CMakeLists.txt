@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(subhook)
 
-set(SUBHOOK_HEADERS "subhook.h")
-set(SUBHOOK_SOURCES "subhook.c" "subhook_private.h")
+set(SUBHOOK_HEADERS subhook.h)
+set(SUBHOOK_SOURCES subhook.c subhook_private.h)
 
 add_definitions(-DSUBHOOK_IMPLEMENTATION)
 
@@ -19,17 +19,17 @@ set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY INCLUDE_DIRECTORIES
 if(SUBHOOK_STATIC)
 	add_definitions(-DSUBHOOK_STATIC)
 	set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY
-	             COMPILE_DEFINITIONS "SUBHOOK_STATIC")
+	             COMPILE_DEFINITIONS SUBHOOK_STATIC)
 endif()
 
 set(SUBHOOK_STATIC ${SUBHOOK_STATIC} CACHE BOOL "Build as static library")
 mark_as_advanced(SUBHOOK_STATIC)
 
 if(SUBHOOK_INSTALL)
-	install(TARGETS subhook LIBRARY DESTINATION "lib"
-	                        ARCHIVE DESTINATION "lib"
-	                        RUNTIME DESTINATION "bin")
-	install(FILES ${SUBHOOK_HEADERS} DESTINATION "include")
+	install(TARGETS subhook LIBRARY DESTINATION lib
+	                        ARCHIVE DESTINATION lib
+	                        RUNTIME DESTINATION bin)
+	install(FILES ${SUBHOOK_HEADERS} DESTINATION include)
 endif()
 
 set(SUBHOOK_INSTALL FALSE CACHE BOOL "Create install target")
