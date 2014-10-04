@@ -72,15 +72,21 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 		return -EINVAL;
 
 	if (!hook->unlocked) {
-		subhook_unprotect(hook->src, sizeof(jmp_instr));
-		hook->unlocked = 1;
+		subhook_unlock(hook->src, sizeof(jmp_instr));
+		hook->unlocked  = 1;
 	}
 
-	memcpy(((struct subhook_x86 *)hook)->code, hook->src, sizeof(jmp_instr));
-	memcpy(hook->src, &jmp_instr, sizeof(jmp_instr));
+	memcpy(((struct subhook_x86 *)hook)->code,
+	       hook->src,
+	       sizeof(jmp_instr));
+	memcpy(hook->src,
+	       &jmp_instr,
+	       sizeof(jmp_instr));
 
-	offset = (intptr_t)hook->dst - ((intptr_t)hook->src + sizeof(jmp_instr));
-	memcpy((void *)((intptr_t)hook->src + sizeof(jmp_opcode)), &offset,
+	offset = (intptr_t)hook->dst - (
+	         (intptr_t)hook->src + sizeof(jmp_instr));
+	memcpy((void *)((intptr_t)hook->src + sizeof(jmp_opcode)),
+	       &offset,
 	       sizeof(jmp_instr) - sizeof(jmp_opcode));
 
 	hook->installed = 1;
@@ -91,7 +97,8 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 	if (!hook->installed)
 		return -EINVAL;
 
-	memcpy(hook->src, ((struct subhook_x86 *)hook)->code,
+	memcpy(hook->src,
+	       ((struct subhook_x86 *)hook)->code,
 	       sizeof(jmp_instr));
 
 	hook->installed = 0;
@@ -106,7 +113,8 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src) {
 	if (opcode != jmp_opcode)
 		return NULL;
 
-	memcpy(&offset, (void *)((intptr_t)src + sizeof(jmp_opcode)),
+	memcpy(&offset,
+	       (void *)((intptr_t)src + sizeof(jmp_opcode)),
 	       sizeof(offset));
 	return (void *)(offset + (intptr_t)src + sizeof(jmp_instr));
 }

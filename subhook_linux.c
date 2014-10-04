@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-void *subhook_unprotect(void *address, size_t size) {
+void *subhook_unlock(void *address, size_t size) {
 	intptr_t pagesize;
 
 	pagesize = sysconf(_SC_PAGESIZE);

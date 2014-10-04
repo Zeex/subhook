@@ -33,6 +33,6 @@ struct subhook {
 	void *dst;
 };
 
-void *subhook_unprotect(void *address, size_t size);
+void *subhook_unlock(void *address, size_t size);
 
 #endif /* SUBHOOK_PRIVATE_H */

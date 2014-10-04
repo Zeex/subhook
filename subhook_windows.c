@@ -26,7 +26,7 @@
 #include <stddef.h>
 #include <windows.h>
 
-void *subhook_unprotect(void *address, size_t size) {
+void *subhook_unlock(void *address, size_t size) {
 	DWORD old;
 
 	if (VirtualProtect(address, size, PAGE_EXECUTE_READWRITE, &old) == 0)
