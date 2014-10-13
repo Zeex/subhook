@@ -137,6 +137,9 @@ public:
 		subhook_free(hook_);
 	}
 
+	void SetSrc(void *src) { subhook_set_src(hook_, src); }
+	void SetDst(void *dst) { subhook_set_dst(hook_, dst); }
+
 	void *GetSrc() { return subhook_get_src(hook_); }
 	void *GetDst() { return subhook_get_dst(hook_); }
 
