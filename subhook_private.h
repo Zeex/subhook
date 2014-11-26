@@ -26,6 +26,8 @@
 #ifndef SUBHOOK_PRIVATE_H
 #define SUBHOOK_PRIVATE_H
 
+#include <stddef.h>
+
 struct subhook {
 	int installed;
 	void *src;

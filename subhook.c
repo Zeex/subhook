@@ -23,8 +23,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdlib.h>
-
 #include "subhook.h"
 #include "subhook_private.h"
 
