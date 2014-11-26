@@ -30,8 +30,10 @@
 
 #if defined _M_IX86 || defined __i386__
 	#define SUBHOOK_X86
+	#define SUBHOOK_BITS 32
 #elif defined _M_AMD64 || __amd64__
 	#define SUBHOOK_X86_64
+	#define SUBHOOK_BITS 64
 #else
 	#error Unsupported architecture
 #endif
@@ -88,28 +90,21 @@
 struct subhook;
 typedef struct subhook *subhook_t;
 
-SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new();
+SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src, void *dst);
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook);
-
-/* Set hook source and destination.
- * Do NOT call these functions after subhook_install() !!
- */
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_src(subhook_t hook, void *src);
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_dst(subhook_t hook, void *dst);
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook);
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(subhook_t hook);
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_trampoline(subhook_t hook);
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook);
-SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook);
-
-/* Checks whether the hook is installed. */
 SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook);
+SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook);
 
 /* Reads hook destination address from code.
  *
  * This is useful when you don't know the address or want to check
- * whether src has been hooked with subhook.
+ * whether src is already hooked.
  */
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
@@ -118,38 +113,26 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 class SubHook
 {
 public:
-	SubHook()
-		: hook_(subhook_new())
-	{
-		subhook_set_src(hook_, 0);
-		subhook_set_dst(hook_, 0);
-	}
-
-	SubHook(void *src, void *dst)
-		: hook_(subhook_new())
-	{
-		subhook_set_src(hook_, src);
-		subhook_set_dst(hook_, dst);
-	}
+	SubHook() : hook_(0) {}
+	SubHook(void *src, void *dst) : hook_(subhook_new(src, dst)) {}
 
 	~SubHook() {
 		subhook_remove(hook_);
 		subhook_free(hook_);
 	}
 
-	void SetSrc(void *src) { subhook_set_src(hook_, src); }
-	void SetDst(void *dst) { subhook_set_dst(hook_, dst); }
-
 	void *GetSrc() { return subhook_get_src(hook_); }
 	void *GetDst() { return subhook_get_dst(hook_); }
+	void *GetTrampoline() { return subhook_get_trampoline(hook_); }
 
 	bool Install() {
 		return subhook_install(hook_) >= 0;
 	}
 
 	bool Install(void *src, void *dst) {
-		subhook_set_src(hook_, src);
-		subhook_set_dst(hook_, dst);
+		if (hook_ == 0) {
+			hook_ = subhook_new(src, dst);
+		}
 		return Install();
 	}
 

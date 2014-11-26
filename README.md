@@ -8,7 +8,7 @@ In the following examples `foo` is some function or a function pointer that
 takes a single argument of type `int` and uses the same calling convention
 as `my_foo` (depends on compiler).
 
-### C
+### Basic usage
 
 ```c
 #include <stdio.h>
@@ -17,34 +17,52 @@ as `my_foo` (depends on compiler).
 subhook_t foo_hook;
 
 void my_foo(int x) {
-  /* Sometimes you want to call the original function. */
+  /* Remove the hook so that you can call the original function. */
   subhook_remove(foo_hook);
 
   printf("foo(%d) called\n", x);
   foo(x);
 
-  /* Install the hook back again to intercept further calls. */
+  /* Install the hook back to intercept further calls. */
   subhook_install(foo_hook);
 }
 
 int main() {
-  foo_hook = subhook_new();
+  /* Create a hook that will redirect all foo() calls to to my_foo(). */
+  foo_hook = subhook_new((void *)foo, (void *)my_foo);
 
-  /* The "source" is the function that we want to hook. */
-  subhook_set_src((void*)foo);
-
-  /* The "destination" is the function that will get called instead of the
-   * original function. */
-  subhook_set_dst((void*)my_foo);
-
-  /* Install our newly created hook so from now on any call to foo()
-   * will be redirected to my_foo(). */
+  /* Install it. */
   subhook_install(foo_hook);
 
-  /* Free the memory when you're done. */
+  foo(123);
+
+  /* Remove the hook and free memory when you're done. */
+  subhook_remove(foo_hook);
   subhook_free(foo_hook);
 }
 ```
+
+### Trampolines
+
+Using trampolines allows you to jump to the original code without removing
+and re-installing hooks every time your function gets called.
+
+```c
+typedef void (*foo_func)(int x);
+
+void my_foo(int x) {
+  printf("foo(%d) called\n", x);
+
+  /* Call foo() via trampoline. */
+  ((foo_func)subhook_get_trampoline(foo_hook))(x);
+}
+
+int main() {
+   /* Same code as in previous example. */
+}
+```
+
+Please note that subhook has a very simple length disassmebler engine (LDE) that works only with most common prologue instructions like push, mov, call, etc. When it encounters an unknown instruction subhook_get_trampoline() will return NULL.
 
 ### C++
 
@@ -53,20 +71,30 @@ int main() {
 #include <subhook.h>
 
 SubHook foo_hook;
+SubHook foo_hook_tr;
+
+typedef void (*foo_func)(int x);
 
 void my_foo(int x) {
   // ScopedRemove removes the specified hook and automatically re-installs it
-  // when it goes out of scope (thanks to C++ destructors).
+  // when the objectt goes out of scope (thanks to C++ destructors).
   SubHook::ScopedRemove remove(&foo_hook);
 
   std::cout << "foo(" << x < ") called" << std::endl;
-  foo(x);
+  foo(x + 1);
+}
+
+void my_foo_tr(int x) {
+  std::cout << "foo(" << x < ") called" << std::endl;
+
+  // Call the original function via trampoline.
+  ((foo_func)foo_hook_tr.GetTrampoline())(x + 1);
 }
 
 int main() {
-  foo_hook.Install((void*)foo, (void*)my_foo);
+  foo_hook.Install((void *)foo, (void *)my_foo);
+  foo_hook_tr.Install(void *)foo, (void *)my_foo_tr);
 }
-
 ```
 
 [github]: https://github.com/Zeex/subhook
