@@ -148,22 +148,24 @@ static size_t subhook_disasm(uint8_t *code, int *reloc) {
 		return 0;
 
 	if (reloc != NULL && opcodes[i].flags & RELOC)
-		*reloc = len;
+		*reloc = len; /* relative call or jump */
 
 	if (opcodes[i].flags & MODRM) {
 		int modrm = code[len++];
+		int mod = modrm >> 6;
+		int rm = modrm & 7;
 
-		if ((modrm & 0xC0) != 0xC0 && (modrm & 0x07) == 0x04)
+		if (mod != 3 && rm == 4)
 			len++; /* for SIB */
 
 #ifdef SUBHOOK_X86_64
-		if (reloc != NULL && (modrm & 0x07) == 0x05)
-			*reloc = len;
+		if (reloc != NULL && rm == 5)
+			*reloc = len; /* RIP-relative addressing */
 #endif
 
-		if ((modrm & 0xC0) == 0x40)
+		if (mod == 1)
 			len += 1; /* for disp8 */
-		if ((modrm & 0xC0) == 0x80 || (modrm & 0x07) == 0x05)
+		if (mod == 2 || (mod == 0 && rm == 5))
 			len += 4; /* for disp32 */
 	}
 
