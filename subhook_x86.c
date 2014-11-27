@@ -31,12 +31,16 @@
 #include "subhook.h"
 #include "subhook_private.h"
 
-typedef unsigned char uint8_t;
-typedef int int32_t;
-#if SUBHOOK_BITS == 64
-	typedef long long intptr_t;
+#ifdef SUBHOOK_WINDOWS
+	typedef unsigned __int8 uint8_t;
+	typedef __int32 int32_t;
+	#if SUBHOOK_BITS == 64
+		typedef __int64 intptr_t;
+	#elif SUBHOOK_BITS == 32
+		typedef __int32 intptr_t;
+	#endif
 #else
-	typedef int intptr_t;
+	#include <stdint.h>
 #endif
 
 #define JMP_INSN_OPCODE 0xE9

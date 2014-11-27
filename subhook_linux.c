@@ -28,10 +28,10 @@
 #include <sys/mman.h>
 
 void *subhook_unprotect(void *address, size_t size) {
-	size_t pagesize;
+	long pagesize;
 
 	pagesize = sysconf(_SC_PAGESIZE);
-	address = (void *)((size_t)address & ~(pagesize - 1));
+	address = (void *)((long)address & ~(pagesize - 1));
 
 	if (mprotect(address, size, PROT_READ | PROT_WRITE | PROT_EXEC) != 0)
 		return NULL;
