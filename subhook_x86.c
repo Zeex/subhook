@@ -200,7 +200,7 @@ static size_t subhook_make_trampoline(uint8_t *trampoline, uint8_t *src) {
 		if (insn_len == 0)
 			return 0;
 
-		memcpy(trampoline + orig_size, src, insn_len);
+		memcpy(trampoline + orig_size, src + orig_size, insn_len);
 
 		if (reloc > 0)
 			*(int32_t *)(trampoline + orig_size + reloc) -=
