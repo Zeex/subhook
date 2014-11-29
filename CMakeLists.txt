@@ -34,7 +34,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-if(SUBHOOK_INSTALL)
+if(NOT SUBHOOK_NO_INSTALL)
 	install(TARGETS subhook
 		LIBRARY DESTINATION lib
 		ARCHIVE DESTINATION lib
@@ -50,7 +50,7 @@ set(CPACK_PACKAGE_VERSION_PATCH ${SUBHOOK_VERSION_PATCH})
 include(CPack)
 include(CTest)
 
-if(BUILD_TESTING)
+if(BUILD_TESTING AND NOT SUBHOOK_NO_TESTS)
 	enable_testing()
 	add_subdirectory(test)
 endif()
