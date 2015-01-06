@@ -1,8 +1,6 @@
 project(subhook)
 cmake_minimum_required(VERSION 2.8)
 
-option(SUBHOOK_STATIC "Build as static library" FALSE)
-
 set(SUBHOOK_VERSION_MAJOR 0)
 set(SUBHOOK_VERSION_MINOR 2)
 set(SUBHOOK_VERSION_PATCH 0)
