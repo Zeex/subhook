@@ -1,7 +1,7 @@
 #include <subhook.h>
 
-extern foo();
-extern foo_hook();
+extern void foo();
+extern void foo_hook();
 
 subhook_t hfoo;
 
