@@ -1,7 +1,7 @@
 [![Version][version_badge]][version]
 
-[SubHook][github] is a super-simple hooking library for C/C++ that works on
-both Linux and Windows. It currently supports only x86 and x86-64.
+SubHook is a super-simple hooking library for C/C++ that works on Linux and
+Windows. It currently supports x86 and x86-64.
 
 Examples
 --------
@@ -101,4 +101,3 @@ int main() {
 
 [version]: http://badge.fury.io/gh/zeex%2Fsubhook
 [version_badge]: https://badge.fury.io/gh/zeex%2Fsubhook.svg
-[github]: https://github.com/Zeex/subhook
