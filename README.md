@@ -95,7 +95,7 @@ void my_foo_tr(int x) {
 
 int main() {
   foo_hook.Install((void *)foo, (void *)my_foo);
-  foo_hook_tr.Install(void *)foo, (void *)my_foo_tr);
+  foo_hook_tr.Install((void *)foo, (void *)my_foo_tr);
 }
 ```
 
