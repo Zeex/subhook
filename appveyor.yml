@@ -1,0 +1,10 @@
+version: '{build}'
+
+configuration:
+  - Release
+
+before_build:
+  - cmake .
+
+build_script:
+  - cmake --build . --config %CONFIGURATION%
