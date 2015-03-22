@@ -101,6 +101,11 @@ int main() {
 }
 ```
 
+License
+-------
+
+Licensed under the 2-clause BSD license.
+
 [version]: http://badge.fury.io/gh/zeex%2Fsubhook
 [version_badge]: https://badge.fury.io/gh/zeex%2Fsubhook.svg
 [build]: https://travis-ci.org/Zeex/subhook
