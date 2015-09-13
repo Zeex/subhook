@@ -58,7 +58,7 @@ struct subhook_jmp {
 
 #pragma pack(pop)
 
-static size_t subhook_disasm(uint8_t *code, int *reloc) {
+static int subhook_disasm(uint8_t *code, int *reloc) {
 	enum flags {
 		MODRM      = 1,
 		PLUS_R     = 1 << 1,
@@ -187,14 +187,14 @@ static size_t subhook_make_jmp(uint8_t *src, uint8_t *dst, int32_t offset) {
 	struct subhook_jmp *jmp = (struct subhook_jmp *)(src + offset);
 
 	jmp->opcode = JMP_INSN_OPCODE;
-	jmp->offset = dst - (src + JMP_INSN_LEN);
+	jmp->offset = (int32_t)(dst - (src + JMP_INSN_LEN));
 
 	return sizeof(jmp);
 }
 
 static size_t subhook_make_trampoline(uint8_t *trampoline, uint8_t *src) {
-	size_t orig_size = 0;
-	size_t insn_len;
+	int orig_size = 0;
+	int insn_len;
 
 	while (orig_size < JMP_INSN_LEN) {
 		int reloc = 0;
@@ -206,9 +206,10 @@ static size_t subhook_make_trampoline(uint8_t *trampoline, uint8_t *src) {
 
 		memcpy(trampoline + orig_size, src + orig_size, insn_len);
 
-		if (reloc > 0)
-			*(int32_t *)(trampoline + orig_size + reloc) -=
-				(intptr_t)trampoline - (intptr_t)src;
+		if (reloc > 0) {
+			int32_t *addr_ptr = (int32_t *)(trampoline + orig_size + reloc);
+			*addr_ptr -= (int32_t)(trampoline - src);
+		}
 
 		orig_size += insn_len;
 	}
