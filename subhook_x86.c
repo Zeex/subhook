@@ -83,8 +83,10 @@ static int subhook_disasm(uint8_t *code, int *reloc) {
 	};
 
 	/*
-	 * Refer to Intel Reference Manual volumes 2a and 2b for more information
-	 * about instruction format and encoding.
+	 * Refer to the Intel Developer Manual volumes 2a and 2b for more information
+	 * about instruction formats and encoding:
+	 *
+	 * https://www-ssl.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html
 	 */
 	static struct opcode_info opcodes[] = {
 		/* CALL rel32        */ {0xE8, 0, IMM32 | RELOC},
