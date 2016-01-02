@@ -38,7 +38,7 @@
 
 #if defined __linux__
 	#define SUBHOOK_LINUX
-#elif defined _WIN32
+#elif defined _WIN32 || defined __CYGWIN__
 	#define SUBHOOK_WINDOWS
 #else
 	#error Unsupported operating system
