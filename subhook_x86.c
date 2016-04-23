@@ -244,7 +244,7 @@ static void subhook_make_jmp(void *src, void *dst) {
 	struct subhook_jmp64 *jmp = (struct subhook_jmp64 *)src;
 
 	jmp->push_opcode = PUSH_OPCODE;
-	jmp->push_addr = (uint32_t)dst; /* truncate */
+	jmp->push_addr = (uint32_t)(uintptr_t)dst; /* truncate */
 	jmp->mov_opcode = MOV_OPCODE;
 	jmp->mov_modrm = MOV_MODRM_BYTE;
 	jmp->mov_sib = MOV_SIB_BYTE;
