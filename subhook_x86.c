@@ -35,59 +35,59 @@
 	typedef unsigned __int8 uint8_t;
 	typedef __int32 int32_t;
 	typedef unsigned __int32 uint32_t;
-	typedef __int64 int64_t;
-	typedef unsigned __int64 uint64_t;
-	#if SUBHOOK_BITS == 64
-		typedef __int64 intptr_t;
-	#elif SUBHOOK_BITS == 32
+	#if SUBHOOK_BITS == 32
 		typedef __int32 intptr_t;
+		typedef unsigned __int32 uintptr_t;
+	#else
+		typedef __int64 intptr_t;
+		typedef unsigned __int64 uintptr_t;
 	#endif
 #else
 	#include <stdint.h>
 #endif
 
-#define JMP_INSN_LEN sizeof(struct subhook_jmp)
+#define JMP_OPCODE  0xE9
+#define PUSH_OPCODE 0x68
+#define MOV_OPCODE  0xC7
+#define RET_OPCODE  0xC3
 
-#define MAX_INSN_LEN 15
-#define MAX_TRAMPOLINE_LEN (JMP_INSN_LEN + MAX_INSN_LEN - 1)
+#define MOV_MODRM_BYTE 0x44 /* write to address + 1 byte displacement */
+#define MOV_SIB_BYTE   0x24 /* write to [rsp] */
+#define MOV_OFFSET     0x04
 
 #pragma pack(push, 1)
 
-#if SUBHOOK_BITS == 32
-	#define JMP_INSN_OPCODE 0xE9
-	struct subhook_jmp {
-		uint8_t opcode;
-		int32_t offset;
-	};
-#elif SUBHOOK_BITS == 64
-	// Since AMD64 doesn't support 64-bit direct jumps,
-	// we'll push the address onto the stack, then call RET
+struct subhook_jmp32 {
+	uint8_t opcode;
+	int32_t offset;
+};
 
-	// opcodes
-	#define PSH_INSN_OPCODE 0x68
-	#define MOV_INSN_OPCODE 0xC7
-	#define RET_INSN_OPCODE 0xC3
-
-	// mov configuration
-	#define MOV_MODRM_BYTE 0x44 // write to address + 1 byte displacement
-	#define MOV_SIB_BYTE 0x24 // Write to [rsp]
-	#define MOV_OFFSET 0x04
-
-	struct subhook_jmp {
-		uint8_t psh_opcode;
-		uint32_t psh_addr; // lower 32-bits of the address to jump to
-		uint8_t mov_opcode;
-		uint8_t mov_modrm;
-		uint8_t mov_sib;
-		uint8_t mov_offset;
-		uint32_t mov_addr; // upper 32-bits of the address to jump to
-		uint8_t ret_opcode;
-	};
-#endif
+/* Since AMD64 doesn't support 64-bit direct jumps, we'll push the address
+ * onto the stack, then call RET.
+ */
+struct subhook_jmp64 {
+	uint8_t  push_opcode;
+	uint32_t push_addr; /* lower 32-bits of the address to jump to */
+	uint8_t  mov_opcode;
+	uint8_t  mov_modrm;
+	uint8_t  mov_sib;
+	uint8_t  mov_offset;
+	uint32_t mov_addr;  /* upper 32-bits of the address to jump to */
+	uint8_t  ret_opcode;
+};
 
 #pragma pack(pop)
 
-static int subhook_disasm(uint8_t *code, int *reloc) {
+#if SUBHOOK_BITS == 32
+	#define JMP_SIZE sizeof(struct subhook_jmp32)
+#else
+	#define JMP_SIZE sizeof(struct subhook_jmp64)
+#endif
+
+#define MAX_INSN_LEN 15
+#define MAX_TRAMPOLINE_LEN (JMP_SIZE + MAX_INSN_LEN - 1)
+
+static int subhook_disasm(void *src, int32_t *reloc_op_offset) {
 	enum flags {
 		MODRM      = 1,
 		PLUS_R     = 1 << 1,
@@ -160,6 +160,7 @@ static int subhook_disasm(uint8_t *code, int *reloc) {
 		/* TEST r/m32, r32   */ {0x85, 0, MODRM}
 	};
 
+	uint8_t *code = src;
 	int i;
 	int len = 0;
 	int operand_size = 4;
@@ -196,8 +197,8 @@ static int subhook_disasm(uint8_t *code, int *reloc) {
 	if (opcode == 0)
 		return 0;
 
-	if (reloc != NULL && opcodes[i].flags & RELOC)
-		*reloc = len; /* relative call or jump */
+	if (reloc_op_offset != NULL && opcodes[i].flags & RELOC)
+		*reloc_op_offset = len; /* relative call or jump */
 
 	if (opcodes[i].flags & MODRM) {
 		int modrm = code[len++];
@@ -207,9 +208,9 @@ static int subhook_disasm(uint8_t *code, int *reloc) {
 		if (mod != 3 && rm == 4)
 			len++; /* for SIB */
 
-#ifdef SUBHOOK_X86_64
-		if (reloc != NULL && rm == 5)
-			*reloc = len; /* RIP-relative addressing */
+#if SUBHOOK_BITS == 64
+		if (reloc_op_offset != NULL && rm == 5)
+			*reloc_op_offset = len; /* RIP-relative addressing */
 #endif
 
 		if (mod == 1)
@@ -228,54 +229,74 @@ static int subhook_disasm(uint8_t *code, int *reloc) {
 	return len;
 }
 
-static size_t subhook_make_jmp(uint8_t *src, uint8_t *dst, int32_t offset) {
-	struct subhook_jmp *jmp = (struct subhook_jmp *)(src + offset);
-
 #if SUBHOOK_BITS == 32
-	jmp->opcode = JMP_INSN_OPCODE;
-	jmp->offset = (int32_t)(dst - (src + JMP_INSN_LEN));
-#elif SUBHOOK_BITS == 64
-	// Push
-	jmp->psh_opcode = PSH_INSN_OPCODE;
-	jmp->psh_addr = (uint32_t)dst; // Truncate
 
-	// Move
-	jmp->mov_opcode = MOV_INSN_OPCODE;
+static void subhook_make_jmp(void *src, void *dst) {
+	struct subhook_jmp32 *jmp = (struct subhook_jmp32 *)src;
+
+	jmp->opcode = JMP_OPCODE;
+	jmp->offset = (int32_t)((intptr_t)dst - ((intptr_t)src + JMP_SIZE));
+}
+
+#else
+
+static void subhook_make_jmp(void *src, void *dst) {
+	struct subhook_jmp64 *jmp = (struct subhook_jmp64 *)src;
+
+	jmp->push_opcode = PUSH_OPCODE;
+	jmp->push_addr = (uint32_t)dst; /* truncate */
+	jmp->mov_opcode = MOV_OPCODE;
 	jmp->mov_modrm = MOV_MODRM_BYTE;
 	jmp->mov_sib = MOV_SIB_BYTE;
 	jmp->mov_offset = MOV_OFFSET;
-	jmp->mov_addr = (uint32_t)(((intptr_t)dst) >> 32);
-
-	// Return
-	jmp->ret_opcode = RET_INSN_OPCODE;
-#endif
-
-	return sizeof(jmp);
+	jmp->mov_addr = (uint32_t)(((uintptr_t)dst) >> 32);
+	jmp->ret_opcode = RET_OPCODE;
 }
 
-static size_t subhook_make_trampoline(uint8_t *trampoline, uint8_t *src) {
+#endif
+
+static size_t subhook_make_trampoline(void *trampoline, void *src) {
 	int orig_size = 0;
 	int insn_len;
+	intptr_t trampoline_addr = (intptr_t)trampoline;
+	intptr_t src_addr = (intptr_t)src;
+	intptr_t return_dst_addr;
 
-	while (orig_size < JMP_INSN_LEN) {
-		int reloc = 0;
+	while (orig_size < JMP_SIZE) {
+		int32_t reloc_op_offset = 0;
 
-		insn_len = subhook_disasm(src + orig_size, &reloc);
+		insn_len =
+			subhook_disasm((void *)(src_addr + orig_size), &reloc_op_offset);
 
 		if (insn_len == 0)
 			return 0;
 
-		memcpy(trampoline + orig_size, src + orig_size, insn_len);
+		memcpy(
+			(void *)(trampoline_addr + orig_size),
+			(void *)(src_addr + orig_size),
+			insn_len);
 
-		if (reloc > 0) {
-			int32_t *addr_ptr = (int32_t *)(trampoline + orig_size + reloc);
-			*addr_ptr -= (int32_t)(trampoline - src);
+		/* If the operand is a relative address, such as found in calls or
+		 * jumps, it needs to be relocated because the original code and the
+		 * trampoline reside at different locations in memory.
+		 */
+		if (reloc_op_offset > 0) {
+			/* Calculate how far our trampoline is from the source and change
+			 * the address accordingly.
+			 */
+			int32_t moved_by = (int32_t)(trampoline_addr - src_addr);
+			int32_t *op = (int32_t *)(
+				trampoline_addr + orig_size + reloc_op_offset);
+			*op -= moved_by;
 		}
 
 		orig_size += insn_len;
 	}
 
-	return orig_size + subhook_make_jmp(trampoline, src, orig_size);
+	return_dst_addr = src_addr + orig_size;
+	subhook_make_jmp(trampoline, (void *)return_dst_addr);
+
+	return orig_size + JMP_SIZE;
 }
 
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src, void *dst) {
@@ -288,12 +309,12 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src, void *dst) {
 	hook->src = src;
 	hook->dst = dst;
 
-	if ((hook->code = malloc(JMP_INSN_LEN)) == NULL) {
+	if ((hook->code = malloc(JMP_SIZE)) == NULL) {
 		free(hook);
 		return NULL;
 	}
 
-	memcpy(hook->code, hook->src, JMP_INSN_LEN);
+	memcpy(hook->code, hook->src, JMP_SIZE);
 
 	if ((hook->trampoline = calloc(1, MAX_TRAMPOLINE_LEN)) == NULL) {
 		free(hook->code);
@@ -301,7 +322,7 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src, void *dst) {
 		return NULL;
 	}
 
-	if (subhook_unprotect(hook->src, JMP_INSN_LEN) == NULL
+	if (subhook_unprotect(hook->src, JMP_SIZE) == NULL
 		|| subhook_unprotect(hook->trampoline, MAX_TRAMPOLINE_LEN) == NULL)
 	{
 		free(hook->trampoline);
@@ -328,7 +349,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 	if (hook->installed)
 		return -EINVAL;
 
-	subhook_make_jmp(hook->src, hook->dst, 0);
+	subhook_make_jmp(hook->src, hook->dst);
 	hook->installed = 1;
 
 	return 0;
@@ -338,24 +359,33 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 	if (!hook->installed)
 		return -EINVAL;
 
-	memcpy(hook->src, hook->code, JMP_INSN_LEN);
+	memcpy(hook->src, hook->code, JMP_SIZE);
 	hook->installed = 0;
 
 	return 0;
 }
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src) {
-	struct subhook_jmp *maybe_jmp = (struct subhook_jmp *)src;
-
 #if SUBHOOK_BITS == 32
-	if (maybe_jmp->opcode != JMP_INSN_OPCODE)
+
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src)  {
+	struct subhook_jmp32 *maybe_jmp = (struct subhook_jmp32 *)src;
+
+	if (maybe_jmp->opcode != JMP_OPCODE)
 		return NULL;
 
-	return (void *)(maybe_jmp->offset + (uint8_t *)src + JMP_INSN_LEN);
-#elif SUBHOOK_BITS == 64
-	if (maybe_jmp->psh_opcode != PSH_INSN_OPCODE)
-		return NULL;
-
-	return (void *)( ((uint64_t)maybe_jmp->psh_addr) & (((uint64_t)maybe_jmp->mov_addr << 32)) );
-#endif
+	return (void *)(maybe_jmp->offset + (uintptr_t)src + JMP_SIZE);
 }
+
+#else
+
+SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src)  {
+	struct subhook_jmp64 *maybe_jmp = (struct subhook_jmp64 *)src;
+
+	if (maybe_jmp->push_opcode != PUSH_OPCODE)
+		return NULL;
+
+	return (void *)(
+		maybe_jmp->push_addr & (((uintptr_t)maybe_jmp->mov_addr << 32)));
+}
+
+#endif
