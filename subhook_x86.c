@@ -34,6 +34,9 @@
 #ifdef SUBHOOK_WINDOWS
 	typedef unsigned __int8 uint8_t;
 	typedef __int32 int32_t;
+	typedef unsigned __int32 uint32_t;
+	typedef __int64 int64_t;
+	typedef unsigned __int64 uint64_t;
 	#if SUBHOOK_BITS == 64
 		typedef __int64 intptr_t;
 	#elif SUBHOOK_BITS == 32
@@ -54,7 +57,7 @@
 	#define JMP_INSN_OPCODE 0xE9
 	struct subhook_jmp {
 		uint8_t opcode;
-		uint32_t offset;
+		int32_t offset;
 	};
 #elif SUBHOOK_BITS == 64
 	// Since AMD64 doesn't support 64-bit direct jumps,
