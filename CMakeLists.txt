@@ -15,29 +15,28 @@ set(SUBHOOK_SOURCES subhook.c subhook_private.h)
 add_definitions(-DSUBHOOK_IMPLEMENTATION)
 
 if(SUBHOOK_STATIC)
-	add_library(subhook STATIC ${SUBHOOK_HEADERS} ${SUBHOOK_SOURCES})
+  add_library(subhook STATIC ${SUBHOOK_HEADERS} ${SUBHOOK_SOURCES})
 else()
-	add_library(subhook SHARED ${SUBHOOK_HEADERS} ${SUBHOOK_SOURCES})
+  add_library(subhook SHARED ${SUBHOOK_HEADERS} ${SUBHOOK_SOURCES})
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY
-	INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
+set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
+             APPEND PROPERTY INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
 
 if(SUBHOOK_STATIC)
-	add_definitions(-DSUBHOOK_STATIC)
-	set_property(DIRECTORY ${CMAKE_SOURCE_DIR} APPEND PROPERTY
-		COMPILE_DEFINITIONS SUBHOOK_STATIC)
+  add_definitions(-DSUBHOOK_STATIC)
+  set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
+               APPEND PROPERTY COMPILE_DEFINITIONS SUBHOOK_STATIC)
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if(NOT SUBHOOK_NO_INSTALL)
-	install(TARGETS subhook
-		LIBRARY DESTINATION lib
-		ARCHIVE DESTINATION lib
-		RUNTIME DESTINATION bin)
-	install(FILES ${SUBHOOK_HEADERS} DESTINATION include)
+  install(TARGETS subhook LIBRARY DESTINATION lib
+                          ARCHIVE DESTINATION lib
+                          RUNTIME DESTINATION bin)
+  install(FILES ${SUBHOOK_HEADERS} DESTINATION include)
 endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
@@ -49,6 +48,6 @@ include(CPack)
 include(CTest)
 
 if(BUILD_TESTING AND NOT SUBHOOK_NO_TESTS)
-	enable_testing()
-	add_subdirectory(test)
+  enable_testing()
+  add_subdirectory(test)
 endif()

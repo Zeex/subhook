@@ -11,5 +11,6 @@ string(STRIP "${output}" output)
 set_tests_properties(test PROPERTIES PASS_REGULAR_EXPRESSION "${output}")
 
 if(WIN32 AND NOT SUBHOOK_STATIC)
-	set_tests_properties(test PROPERTIES ENVIRONMENT PATH=$<TARGET_FILE_DIR:subhook>)
+  set_tests_properties(test PROPERTIES
+                       ENVIRONMENT PATH=$<TARGET_FILE_DIR:subhook>)
 endif()
