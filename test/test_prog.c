@@ -6,7 +6,7 @@ extern void foo_hook();
 subhook_t hfoo;
 
 int main() {
-	hfoo = subhook_new((void *)foo, (void *)foo_hook);
+	hfoo = subhook_new((void *)foo, (void *)foo_hook, 0);
 	subhook_install(hfoo);
 	foo();
 	subhook_remove(hfoo);

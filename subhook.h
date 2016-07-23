@@ -85,10 +85,15 @@
 	#endif
 #endif
 
+typedef enum subhook_options {
+	/* Use 64-bit jump method on x86-64 (requires more space). */
+	SUBHOOK_OPTION_64BIT_OFFSET = 1u << 1
+} subhook_options_t;
+
 struct subhook;
 typedef struct subhook *subhook_t;
 
-SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src, void *dst);
+SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src, void *dst, subhook_options_t options);
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook);
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook);
