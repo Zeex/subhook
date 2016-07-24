@@ -236,9 +236,9 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   return len;
 }
 
-static size_t subhook_get_jmp_size(subhook_t hook) {
+static size_t subhook_get_jmp_size(subhook_options_t options) {
 #if SUBHOOK_BITS == 64
-  if ((hook->options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
+  if ((options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
     return sizeof(struct subhook_jmp64);
   }
 #endif
@@ -343,7 +343,7 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
   hook->src = src;
   hook->dst = dst;
   hook->options = options;
-  hook->jmp_size = subhook_get_jmp_size(hook);
+  hook->jmp_size = subhook_get_jmp_size(hook->options);
   hook->trampoline_size = hook->jmp_size + MAX_INSN_LEN - 1;
   hook->trampoline_len = 0;
 
