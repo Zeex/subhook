@@ -119,7 +119,10 @@ class SubHook
 {
 public:
   SubHook() : hook_(0) {}
-  SubHook(void *src, void *dst) : hook_(subhook_new(src, dst)) {}
+  SubHook(void *src,
+          void *dst,
+          subhook_options_t options = (subhook_options_t)0)
+    : hook_(subhook_new(src, dst, options)) {}
 
   ~SubHook() {
     subhook_remove(hook_);
@@ -134,9 +137,11 @@ public:
     return subhook_install(hook_) >= 0;
   }
 
-  bool Install(void *src, void *dst) {
+  bool Install(void *src,
+               void *dst,
+               subhook_options_t options = (subhook_options_t)0) {
     if (hook_ == 0) {
-      hook_ = subhook_new(src, dst);
+      hook_ = subhook_new(src, dst, options);
     }
     return Install();
   }

@@ -4,6 +4,6 @@ void foo() {
   printf("foo() called\n");
 }
 
-void foo_hook() {
-  printf("foo_hook() called\n");
+void foo_hooked() {
+  printf("foo_hooked() called\n");
 }

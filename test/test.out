@@ -1,4 +1,4 @@
-foo_hook\(\) called
+foo_hooked\(\) called
 foo\(\) called
-foo_hook\(\) called
+foo_hooked\(\) called
 foo\(\) called
