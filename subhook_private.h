@@ -28,7 +28,7 @@
 
 #include <stddef.h>
 
-struct subhook {
+struct subhook_struct {
   int installed;
   void *src;
   void *dst;

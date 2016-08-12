@@ -3,7 +3,7 @@
 extern void foo();
 extern void foo_hooked();
 
-SubHook foo_hook;
+subhook::Hook foo_hook;
 
 int main() {
   foo_hook.Install((void *)foo, (void *)foo_hooked);

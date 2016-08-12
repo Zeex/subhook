@@ -90,8 +90,8 @@ typedef enum subhook_options {
   SUBHOOK_OPTION_64BIT_OFFSET = 1u << 1
 } subhook_options_t;
 
-struct subhook;
-typedef struct subhook *subhook_t;
+struct subhook_struct;
+typedef struct subhook_struct *subhook_t;
 
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
                                                  void *dst,
@@ -115,16 +115,32 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
 #ifdef __cplusplus
 
-class SubHook
-{
-public:
-  SubHook() : hook_(0) {}
-  SubHook(void *src,
-          void *dst,
-          subhook_options_t options = (subhook_options_t)0)
-    : hook_(subhook_new(src, dst, options)) {}
+namespace subhook {
 
-  ~SubHook() {
+enum HookOptions {
+  HookOptionsNone = 0,
+  HookOption64BitOffset = SUBHOOK_OPTION_64BIT_OFFSET
+};
+
+inline HookOptions operator|(HookOptions o1, HookOptions o2) {
+  return static_cast<HookOptions>(
+      static_cast<unsigned int>(o1) | static_cast<unsigned int>(o2));
+}
+
+inline HookOptions operator&(HookOptions o1, HookOptions o2) {
+  return static_cast<HookOptions>(
+      static_cast<unsigned int>(o1) & static_cast<unsigned int>(o2));
+}
+
+class Hook {
+ public:
+  Hook() : hook_(0) {}
+  Hook(void *src,
+       void *dst,
+       HookOptions options = HookOptionsNone)
+    : hook_(subhook_new(src, dst, (subhook_options_t)options)) {}
+
+  ~Hook() {
     subhook_remove(hook_);
     subhook_free(hook_);
   }
@@ -139,9 +155,9 @@ public:
 
   bool Install(void *src,
                void *dst,
-               subhook_options_t options = (subhook_options_t)0) {
+               HookOptions options = HookOptionsNone) {
     if (hook_ == 0) {
-      hook_ = subhook_new(src, dst, options);
+      hook_ = subhook_new(src, dst, (subhook_options_t)options);
     }
     return Install();
   }
@@ -154,65 +170,65 @@ public:
     return !!subhook_is_installed(hook_);
   }
 
-  class ScopedRemove
-  {
-  public:
-    ScopedRemove(SubHook *hook)
-      : hook_(hook)
-      , removed_(hook_->Remove())
-    {
-    }
-
-    ~ScopedRemove() {
-      if (removed_) {
-        hook_->Install();
-      }
-    }
-
-  private:
-    ScopedRemove(const ScopedRemove &);
-    void operator=(const ScopedRemove &);
-
-  private:
-    SubHook *hook_;
-    bool removed_;
-  };
-
-  class ScopedInstall
-  {
-  public:
-    ScopedInstall(SubHook *hook)
-      : hook_(hook)
-      , installed_(hook_->Install())
-    {
-    }
-
-    ~ScopedInstall() {
-      if (installed_) {
-        hook_->Remove();
-      }
-    }
-
-  private:
-    ScopedInstall(const ScopedInstall &);
-    void operator=(const ScopedInstall &);
-
-  private:
-    SubHook *hook_;
-    bool installed_;
-  };
-
   static void *ReadDst(void *src) {
     return subhook_read_dst(src);
   }
 
-private:
-  SubHook(const SubHook &);
-  void operator=(const SubHook &);
+ private:
+  Hook(const Hook &);
+  void operator=(const Hook &);
 
-private:
+ private:
   subhook_t hook_;
 };
+
+class ScopedHookRemove {
+ public:
+  ScopedHookRemove(Hook *hook)
+    : hook_(hook)
+    , removed_(hook_->Remove())
+  {
+  }
+
+  ~ScopedHookRemove() {
+    if (removed_) {
+      hook_->Install();
+    }
+  }
+
+ private:
+  ScopedHookRemove(const ScopedHookRemove &);
+  void operator=(const ScopedHookRemove &);
+
+ private:
+  Hook *hook_;
+  bool removed_;
+};
+
+class ScopedHookInstall {
+ public:
+  ScopedHookInstall(Hook *hook)
+    : hook_(hook)
+    , installed_(hook_->Install())
+  {
+  }
+
+  ~ScopedHookInstall() {
+    if (installed_) {
+      hook_->Remove();
+    }
+  }
+
+ private:
+  ScopedHookInstall(const ScopedHookInstall &);
+  void operator=(const ScopedHookInstall &);
+
+ private:
+  Hook *hook_;
+  bool installed_;
+};
+
+} // namespace subhook
 
 #endif /* __cplusplus */
 
