@@ -33,7 +33,7 @@ void my_foo(int x) {
 
 int main() {
   /* Create a hook that will redirect all foo() calls to to my_foo(). */
-  foo_hook = subhook_new((void *)foo, (void *)my_foo);
+  foo_hook = subhook_new((void *)foo, (void *)my_foo, 0);
 
   /* Install it. */
   subhook_install(foo_hook);
@@ -66,7 +66,10 @@ int main() {
 }
 ```
 
-Please note that subhook has a very simple length disassmebler engine (LDE) that works only with most common prologue instructions like push, mov, call, etc. When it encounters an unknown instruction subhook_get_trampoline() will return NULL.
+Please note that subhook has a very simple length disassmebler engine (LDE)
+that works only with most common prologue instructions like push, mov, call,
+etc. When it encounters an unknown instruction subhook_get_trampoline() will
+return NULL.
 
 ### C++
 
@@ -74,15 +77,15 @@ Please note that subhook has a very simple length disassmebler engine (LDE) that
 #include <iostream>
 #include <subhook.h>
 
-SubHook foo_hook;
-SubHook foo_hook_tr;
+subhook::Hook foo_hook;
+subhook::Hook foo_hook_tr;
 
 typedef void (*foo_func)(int x);
 
 void my_foo(int x) {
-  // ScopedRemove removes the specified hook and automatically re-installs it
-  // when the objectt goes out of scope (thanks to C++ destructors).
-  SubHook::ScopedRemove remove(&foo_hook);
+  // ScopedHookRemove removes the specified hook and automatically re-installs
+  // it when the objectt goes out of scope (thanks to C++ destructors).
+  subhook::ScopedHookRemove remove(&foo_hook);
 
   std::cout << "foo(" << x < ") called" << std::endl;
   foo(x + 1);
