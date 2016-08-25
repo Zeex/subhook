@@ -275,6 +275,7 @@ static void subhook_make_jmp(void *src,
 #if SUBHOOK_BITS == 64
   if ((options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
     subhook_make_jmp64(src, dst);
+    return;
   }
 #endif
   subhook_make_jmp32(src, dst);
