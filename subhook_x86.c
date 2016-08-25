@@ -328,7 +328,9 @@ static void subhook_make_trampoline(void *trampoline,
    * code + jmp_size bytes for a jump back.
    */
   memcpy(trampoline, src, orig_size);
-  subhook_make_jmp(trampoline, (void *)(src_addr + orig_size), options);
+  subhook_make_jmp((void *)(trampoline_addr + orig_size),
+                   (void *)(src_addr + orig_size),
+                   options);
 }
 
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
