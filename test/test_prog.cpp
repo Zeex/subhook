@@ -11,7 +11,9 @@ subhook::Hook foo_hook;
 int main() {
   std::printf("Testing initial install\n");
 
-  foo_hook.Install((void *)foo, (void *)foo_hooked);
+  foo_hook.Install((void *)foo,
+                   (void *)foo_hooked,
+                   subhook::HookOption64BitOffset);
   foo();
   foo_hook.Remove();
   foo();
