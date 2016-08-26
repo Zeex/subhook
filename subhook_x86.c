@@ -33,9 +33,12 @@
 #include "subhook_private.h"
 
 #ifdef SUBHOOK_WINDOWS
+  #define INT32_MAX 0x7fffffff
+  #define INT32_MIN (-INT32_MAX - 1)
   typedef unsigned __int8 uint8_t;
   typedef __int32 int32_t;
   typedef unsigned __int32 uint32_t;
+  typedef __int64 int64_t;
   #if SUBHOOK_BITS == 32
     typedef __int32 intptr_t;
     typedef unsigned __int32 uintptr_t;
@@ -247,9 +250,13 @@ static size_t subhook_get_jmp_size(subhook_options_t options) {
 
 static void subhook_make_jmp32(void *src, void *dst) {
   struct subhook_jmp32 *jmp = (struct subhook_jmp32 *)src;
+  int64_t offset;
+
+  offset = ((intptr_t)dst - ((intptr_t)src + sizeof(*jmp)));
+  assert(offset > INT32_MIN && offset < INT32_MAX);
 
   jmp->opcode = JMP_OPCODE;
-  jmp->offset = (int32_t)((intptr_t)dst - ((intptr_t)src + sizeof(*jmp)));
+  jmp->offset = (int32_t)offset;
 }
 
 #if SUBHOOK_BITS == 64
