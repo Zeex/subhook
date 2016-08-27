@@ -1,10 +1,12 @@
-add_library(test_lib SHARED test_lib.cpp test_lib.def)
-target_link_libraries(test_lib subhook)
+add_executable(test test.cpp)
+target_link_libraries(test subhook)
 
-add_executable(test_prog test_prog.cpp)
-target_link_libraries(test_prog test_lib)
+if(MSVC)
+  set_property(TARGET test
+               APPEND_STRING PROPERTY LINK_FLAGS " /INCREMENTAL:NO")
+endif()
 
-add_test(NAME test COMMAND $<TARGET_FILE:test_prog>)
+add_test(NAME test COMMAND $<TARGET_FILE:test>)
 
 file(READ test.out output)
 string(STRIP "${output}" output)

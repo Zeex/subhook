@@ -5,4 +5,5 @@ Testing re-install
 foo_hooked\(\) called
 foo\(\) called
 Testing trampoline
+foo_hooked_tr\(\) called
 foo\(\) called
