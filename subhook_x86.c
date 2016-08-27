@@ -250,13 +250,9 @@ static size_t subhook_get_jmp_size(subhook_options_t options) {
 
 static void subhook_make_jmp32(void *src, void *dst) {
   struct subhook_jmp32 *jmp = (struct subhook_jmp32 *)src;
-  int64_t offset;
-
-  offset = ((intptr_t)dst - ((intptr_t)src + sizeof(*jmp)));
-  assert(offset > INT32_MIN && offset < INT32_MAX);
 
   jmp->opcode = JMP_OPCODE;
-  jmp->offset = (int32_t)offset;
+  jmp->offset = (int32_t)((intptr_t)dst - ((intptr_t)src + sizeof(*jmp)));
 }
 
 #if SUBHOOK_BITS == 64
