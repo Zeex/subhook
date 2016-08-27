@@ -354,7 +354,7 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
   hook->dst = dst;
   hook->options = options;
   hook->jmp_size = subhook_get_jmp_size(hook->options);
-  hook->trampoline_size = hook->jmp_size + MAX_INSN_LEN - 1;
+  hook->trampoline_size = hook->jmp_size * 2 + MAX_INSN_LEN;
   hook->trampoline_len = 0;
 
   if ((hook->code = malloc(hook->jmp_size)) == NULL) {
