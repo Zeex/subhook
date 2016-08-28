@@ -176,6 +176,17 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
     }
   }
 
+#if SUBHOOK_BITS == 64
+  if (code[len] >= 0x40 && code[len] <= 0x4F) {
+    len++; /* it's a REX prefix */
+
+    uint8_t rex = code[len];
+    if (rex & 8) {
+      operand_size = 8;
+    }
+  }
+#endif
+
   for (i = 0; i < sizeof(opcodes) / sizeof(*opcodes); i++) {
     int found = 0;
 
