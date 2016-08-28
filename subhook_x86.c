@@ -335,6 +335,12 @@ static int subhook_make_trampoline(void *trampoline,
       return -EINVAL;
     }
 
+    /* Copy this instruction to the trampoline.
+     */
+    memcpy((void *)(trampoline_addr + orig_size),
+           (void *)(src_addr + orig_size),
+           insn_len);
+
     /* If the operand is a relative address, such as found in calls or
      * jumps, it needs to be relocated because the original code and the
      * trampoline reside at different locations in memory.
@@ -343,9 +349,9 @@ static int subhook_make_trampoline(void *trampoline,
       /* Calculate how far our trampoline is from the source and change
        * the address accordingly.
        */
-      int32_t moved_by = (int32_t)(trampoline_addr - src_addr);
+      int32_t offset = (int32_t)(trampoline_addr - src_addr);
       int32_t *op = (int32_t *)(trampoline_addr + orig_size + reloc_op_offset);
-      *op -= moved_by;
+      *op -= offset;
     }
 
     orig_size += insn_len;
@@ -353,10 +359,9 @@ static int subhook_make_trampoline(void *trampoline,
 
   *trampoline_len = orig_size + jmp_size;
 
-  /* Now build the trampoline. It consists of orig_size bytes of original
-   * code + jmp_size bytes for a jump back.
+  /* Insert the final jump. It goes back to the original code at
+   * src + orig_size.
    */
-  memcpy(trampoline, src, orig_size);
   return subhook_make_jmp((void *)(trampoline_addr + orig_size),
                           (void *)(src_addr + orig_size),
                           options);
