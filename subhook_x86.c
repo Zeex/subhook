@@ -248,16 +248,30 @@ static size_t subhook_get_jmp_size(subhook_options_t options) {
   return sizeof(struct subhook_jmp32);
 }
 
-static void subhook_make_jmp32(void *src, void *dst) {
+static int subhook_make_jmp32(void *src, void *dst) {
   struct subhook_jmp32 *jmp = (struct subhook_jmp32 *)src;
+  intptr_t src_addr = (intptr_t)src;
+  intptr_t dst_addr = (intptr_t)dst;
+  int64_t distance;
+
+  if (src_addr > dst_addr) {
+    distance = src_addr - dst_addr;
+  } else {
+    distance = dst_addr - src_addr;
+  }
+  if (distance < INT32_MIN || distance > INT32_MAX) {
+    return -EOVERFLOW;
+  }
 
   jmp->opcode = JMP_OPCODE;
-  jmp->offset = (int32_t)((intptr_t)dst - ((intptr_t)src + sizeof(*jmp)));
+  jmp->offset = (int32_t)(dst_addr - (src_addr + sizeof(*jmp)));
+
+  return 0;
 }
 
 #if SUBHOOK_BITS == 64
 
-static void subhook_make_jmp64(void *src, void *dst) {
+static int subhook_make_jmp64(void *src, void *dst) {
   struct subhook_jmp64 *jmp = (struct subhook_jmp64 *)src;
 
   jmp->push_opcode = PUSH_OPCODE;
@@ -268,27 +282,28 @@ static void subhook_make_jmp64(void *src, void *dst) {
   jmp->mov_offset = MOV_OFFSET;
   jmp->mov_addr = (uint32_t)(((uintptr_t)dst) >> 32);
   jmp->ret_opcode = RET_OPCODE;
+
+  return 0;
 }
 
 #endif
 
-static void subhook_make_jmp(void *src,
-                             void *dst,
-                             subhook_options_t options) {
+static int subhook_make_jmp(void *src,
+                            void *dst,
+                            subhook_options_t options) {
 #if SUBHOOK_BITS == 64
   if ((options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
-    subhook_make_jmp64(src, dst);
-    return;
+    return subhook_make_jmp64(src, dst);
   }
 #endif
-  subhook_make_jmp32(src, dst);
+  return subhook_make_jmp32(src, dst);
 }
 
-static void subhook_make_trampoline(void *trampoline,
-                                    void *src,
-                                    size_t jmp_size,
-                                    size_t *trampoline_len,
-                                    subhook_options_t options) {
+static int subhook_make_trampoline(void *trampoline,
+                                   void *src,
+                                   size_t jmp_size,
+                                   size_t *trampoline_len,
+                                   subhook_options_t options) {
   size_t orig_size = 0;
   size_t insn_len;
   intptr_t trampoline_addr = (intptr_t)trampoline;
@@ -306,7 +321,7 @@ static void subhook_make_trampoline(void *trampoline,
       subhook_disasm((void *)(src_addr + orig_size), &reloc_op_offset);
 
     if (insn_len == 0) {
-      return;
+      return -EINVAL;
     }
 
     /* If the operand is a relative address, such as found in calls or
@@ -331,9 +346,9 @@ static void subhook_make_trampoline(void *trampoline,
    * code + jmp_size bytes for a jump back.
    */
   memcpy(trampoline, src, orig_size);
-  subhook_make_jmp((void *)(trampoline_addr + orig_size),
-                   (void *)(src_addr + orig_size),
-                   options);
+  return subhook_make_jmp((void *)(trampoline_addr + orig_size),
+                          (void *)(src_addr + orig_size),
+                          options);
 }
 
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
@@ -397,14 +412,19 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
+  int error;
+
   if (hook->installed) {
     return -EINVAL;
   }
 
-  subhook_make_jmp(hook->src, hook->dst, hook->options);
-  hook->installed = 1;
+  error = subhook_make_jmp(hook->src, hook->dst, hook->options);
+  if (error >= 0) {
+    hook->installed = 1;
+    return 0;
+  }
 
-  return 0;
+  return error;
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
