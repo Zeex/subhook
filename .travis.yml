@@ -5,8 +5,11 @@ compiler:
   - clang
 
 env:
-  - BITS=32
-  - BITS=64
+  global:
+    - CTEST_OUTPUT_ON_FAILURE=ON
+  matrix:
+    - BITS=32
+    - BITS=64
 
 install:
   - sudo apt-get update -qq

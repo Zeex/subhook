@@ -7,6 +7,9 @@ platform:
 configuration:
   - Release
 
+environment:
+  CTEST_OUTPUT_ON_FAILURE: ON
+
 before_build:
   - cmake .
 
