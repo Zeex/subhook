@@ -50,6 +50,13 @@
   #include <stdint.h>
 #endif
 
+#ifndef true
+  #define true 1
+#endif
+#ifndef false
+  #define false 0
+#endif
+
 #define MAX_INSN_LEN 15 /* maximum length of x86 instruction */
 
 #define JMP_OPCODE  0xE9
@@ -119,7 +126,7 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
     /* CALL r/m32        */ {0xFF, 2, MODRM | REG_OPCODE},
     /* JMP rel32         */ {0xE9, 0, IMM32 | RELOC},
     /* JMP r/m32         */ {0xFF, 4, MODRM | REG_OPCODE},
-    /* LEA r16,m         */ {0x8D, 0, MODRM},
+    /* LEA r32,m         */ {0x8D, 0, MODRM},
     /* MOV r/m8,r8       */ {0x88, 0, MODRM},
     /* MOV r/m32,r32     */ {0x89, 0, MODRM},
     /* MOV r8,r/m8       */ {0x8A, 0, MODRM},
@@ -188,16 +195,19 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
 #endif
 
   for (i = 0; i < sizeof(opcodes) / sizeof(*opcodes); i++) {
-    int found = 0;
+    int found = false;
 
     if (code[len] == opcodes[i].opcode) {
-      found = !(opcodes[i].flags & REG_OPCODE)
-        || ((code[len + 1] >> 3) & 7) == opcodes[i].reg_opcode;
+      if (opcodes[i].flags & REG_OPCODE) {
+        found = ((code[len + 1] >> 3) & 7) == opcodes[i].reg_opcode;
+      } else {
+        found = true;
+      }
     }
 
     if ((opcodes[i].flags & PLUS_R)
       && (code[len] & 0xF8) == opcodes[i].opcode) {
-      found = 1;
+      found = true;
     }
 
     if (found) {
@@ -436,7 +446,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 
   error = subhook_make_jmp(hook->src, hook->dst, hook->options);
   if (error >= 0) {
-    hook->installed = 1;
+    hook->installed = true;
     return 0;
   }
 
