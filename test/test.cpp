@@ -22,18 +22,30 @@ int main() {
   std::printf("Testing initial install\n");
 
   subhook::Hook foo_hook;
-  foo_hook.Install((void *)foo,
-                   (void *)foo_hooked,
-                   subhook::HookOption64BitOffset);
+  if (!foo_hook.Install((void *)foo,
+                        (void *)foo_hooked,
+                        subhook::HookOption64BitOffset)) {
+    std::printf("Install failed\n");
+    return 1;
+  }
   foo();
-  foo_hook.Remove();
+  if (!foo_hook.Remove()) {
+    std::printf("Remove failed\n");
+    return 2;
+  }
   foo();
 
   std::printf("Testing re-install\n");
 
-  foo_hook.Install();
+  if (!foo_hook.Install()) {
+    std::printf("Install failed\n");
+    return 3;
+  }
   foo();
-  foo_hook.Remove();
+  if (!foo_hook.Remove()) {
+    std::printf("Remove failed\n");
+    return 4;
+  }
   foo();
 
   std::printf("Testing trampoline\n");
@@ -41,7 +53,10 @@ int main() {
   subhook::Hook foo_hook_tr((void *)foo,
                             (void *)foo_hooked_tr,
                             subhook::HookOption64BitOffset);
-  foo_hook_tr.Install();
+  if (!foo_hook_tr.Install()) {
+    std::printf("Install failed\n");
+    return 5;
+  }
   foo_tr = (foo_func_t)foo_hook_tr.GetTrampoline();
   foo();
 }
