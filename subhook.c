@@ -44,8 +44,8 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook) {
 
 #if defined SUBHOOK_WINDOWS
   #include "subhook_windows.c"
-#elif defined SUBHOOK_LINUX
-  #include "subhook_linux.c"
+#elif defined SUBHOOK_UNIX
+  #include "subhook_unix.c"
 #endif
 
 #if defined SUBHOOK_X86 || defined SUBHOOK_X86_64
