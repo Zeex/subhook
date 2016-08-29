@@ -225,12 +225,24 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   }
 
   if (opcodes[i].flags & MODRM) {
-    uint8_t modrm = code[len++];
+    uint8_t modrm = code[len++]; /* Mod/RM byte is present */
     uint8_t mod = modrm >> 6;
     uint8_t rm = modrm & 7;
 
     if (mod != 3 && rm == 4) {
-      len++; /* for SIB */
+      uint8_t sib = code[len++]; /* SIB byte is present*/
+      uint8_t base = sib & 7;
+
+      if (base == 5) {
+        /* The SIB is followed by a disp32 with no base if the MOD is 00B.
+         * Otherwise, disp8 or disp32 + [EBP].
+         */
+        if (mod == 1) {
+          len += 1; /* for disp8 */
+        } else {
+          len += 4; /* for disp32 */
+        }
+      }
     }
 
 #if SUBHOOK_BITS == 64
