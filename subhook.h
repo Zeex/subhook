@@ -217,6 +217,15 @@ class ScopedHookInstall {
   {
   }
 
+  ScopedHookInstall(Hook *hook,
+                    void *src,
+                    void *dst,
+                    HookOptions options = HookOptionsNone)
+    : hook_(hook)
+    , installed_(hook_->Install(src, dst, options))
+  {
+  }
+
   ~ScopedHookInstall() {
     if (installed_) {
       hook_->Remove();
