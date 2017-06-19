@@ -87,12 +87,12 @@ void my_foo(int x) {
   // it when the objectt goes out of scope (thanks to C++ destructors).
   subhook::ScopedHookRemove remove(&foo_hook);
 
-  std::cout << "foo(" << x < ") called" << std::endl;
+  std::cout << "foo(" << x << ") called" << std::endl;
   foo(x + 1);
 }
 
 void my_foo_tr(int x) {
-  std::cout << "foo(" << x < ") called" << std::endl;
+  std::cout << "foo(" << x << ") called" << std::endl;
 
   // Call the original function via trampoline.
   ((foo_func)foo_hook_tr.GetTrampoline())(x + 1);
