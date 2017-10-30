@@ -444,6 +444,9 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
 }
 
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
+  if (!hook) {
+    return;
+  }
   free(hook->trampoline);
   free(hook->code);
   free(hook);
@@ -452,6 +455,9 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
   int error;
 
+  if (!hook) {
+    return -EINVAL;
+  }
   if (hook->installed) {
     return -EINVAL;
   }
@@ -466,6 +472,9 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
+  if (!hook) {
+    return -EINVAL;
+  }
   if (!hook->installed) {
     return -EINVAL;
   }
