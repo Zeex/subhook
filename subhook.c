@@ -27,29 +27,29 @@
 #include "subhook_private.h"
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook) {
-  if (!hook) {
-    return 0;
+  if (hook == NULL) {
+    return NULL;
   }
   return hook->src;
 }
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(subhook_t hook) {
-  if (!hook) {
-    return 0;
+  if (hook == NULL) {
+    return NULL;
   }
   return hook->dst;
 }
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_trampoline(subhook_t hook) {
-  if (!hook) {
-    return 0;
+  if (hook == NULL) {
+    return NULL;
   }
   return hook->trampoline;
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook) {
-  if (!hook) {
-    return 0;
+  if (hook == NULL) {
+    return false;
   }
   return hook->installed;
 }

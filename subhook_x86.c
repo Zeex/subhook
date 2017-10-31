@@ -50,13 +50,6 @@
   #include <stdint.h>
 #endif
 
-#ifndef true
-  #define true 1
-#endif
-#ifndef false
-  #define false 0
-#endif
-
 #define MAX_INSN_LEN 15 /* maximum length of x86 instruction */
 
 #define JMP_OPCODE  0xE9
@@ -444,7 +437,7 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
 }
 
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
-  if (!hook) {
+  if (hook == NULL) {
     return;
   }
   free(hook->trampoline);
@@ -455,7 +448,7 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook) {
 SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
   int error;
 
-  if (!hook) {
+  if (hook == NULL) {
     return -EINVAL;
   }
   if (hook->installed) {
@@ -472,7 +465,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
 }
 
 SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
-  if (!hook) {
+  if (hook == NULL) {
     return -EINVAL;
   }
   if (!hook->installed) {
