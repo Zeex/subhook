@@ -1,4 +1,3 @@
-[![Version][version_badge]][version]
 [![Build Status][build_status]][build]
 [![Build Status - Windows][build_status_win]][build_win]
 
@@ -109,8 +108,6 @@ License
 
 Licensed under the 2-clause BSD license.
 
-[version]: http://badge.fury.io/gh/zeex%2Fsubhook
-[version_badge]: https://badge.fury.io/gh/zeex%2Fsubhook.svg
 [build]: https://travis-ci.org/Zeex/subhook
 [build_status]: https://travis-ci.org/Zeex/subhook.svg?branch=master
 [build_win]: https://ci.appveyor.com/project/Zeex/subhook/branch/master
