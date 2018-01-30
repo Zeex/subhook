@@ -117,6 +117,7 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   static struct opcode_info opcodes[] = {
     /* CALL rel32        */ {0xE8, 0, IMM32 | RELOC},
     /* CALL r/m32        */ {0xFF, 2, MODRM | REG_OPCODE},
+    /* CMP r/m16/32, imm8*/ {0x83, 7, MODRM | REG_OPCODE | IMM8 },
     /* JMP rel32         */ {0xE9, 0, IMM32 | RELOC},
     /* JMP r/m32         */ {0xFF, 4, MODRM | REG_OPCODE},
     /* LEA r32,m         */ {0x8D, 0, MODRM},
