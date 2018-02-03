@@ -117,6 +117,7 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   static struct opcode_info opcodes[] = {
     /* CALL rel32        */ {0xE8, 0, IMM32 | RELOC},
     /* CALL r/m32        */ {0xFF, 2, MODRM | REG_OPCODE},
+    /* DEC r/m16/32      */ {0xFF, 1, MODRM | REG_OPCODE },
     /* CMP r/m16/32, imm8*/ {0x83, 7, MODRM | REG_OPCODE | IMM8 },
     /* JMP rel32         */ {0xE9, 0, IMM32 | RELOC},
     /* JMP r/m32         */ {0xFF, 4, MODRM | REG_OPCODE},
@@ -221,7 +222,7 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   if (opcodes[i].flags & MODRM) {
     uint8_t modrm = code[len++]; /* Mod/RM byte is present */
     uint8_t mod = modrm >> 6;
-    uint8_t rm = modrm & 7;
+    uint8_t rm = modrm & 7; 
 
     if (mod != 3 && rm == 4) {
       uint8_t sib = code[len++]; /* SIB byte is present*/
