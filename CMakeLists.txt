@@ -46,6 +46,23 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${SUBHOOK_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${SUBHOOK_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${SUBHOOK_VERSION_PATCH})
 
+set(CPACK_PROJECT_NAME "${PROJECT_NAME}")
+set(CPACK_GENERATOR "RPM")
+set(CPACK_PACKAGE_VERSION "${SUBHOOK_VERSION}")
+set(CPACK_PACKAGE_RELEASE 1)
+set(CPACK_PACKAGE_CONTACT "Zeex")
+set(CPACK_PACKAGE_VENDOR "Github")
+set(CPACK_PACKAGING_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${CMAKE_SYSTEM_PROCESSOR}")
+set(CPACK_RPM_PACKAGE_LICENSE "BSD")
+set(CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "/usr/local/include;/usr/local/lib;/usr/local")
+# couldn't get the below to work, ideally, this install process would put a new
+# file in /etc/ld.conf.d/usr_local_lib.conf containing /usr/local/lib
+# and then run /sbin/ldconfig
+#set(CPACK_RPM_USER_FILELIST "Requires(post):/sbin/ldconfig" "Requires(postun):/sbin/ldconfig" "%transfiletriggerin -P 2000000 -- /usr/local/lib" "%transfiletriggerpostun -P 2000000 -- /usr/local/lib")
+#set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE rpm_post_script)
+#set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE rpm_post_script)
+
 include(CPack)
 include(CTest)
 
