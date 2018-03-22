@@ -154,7 +154,8 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
     /* TEST r/m8, imm8   */ {0xF6, 0, MODRM | REG_OPCODE | IMM8},
     /* TEST r/m32, imm32 */ {0xF7, 0, MODRM | REG_OPCODE | IMM32},
     /* TEST r/m8, r8     */ {0x84, 0, MODRM},
-    /* TEST r/m32, r32   */ {0x85, 0, MODRM}
+    /* TEST r/m32, r32   */ {0x85, 0, MODRM},
+    /* NOP               */ {0x90, 0, 0}
   };
 
   uint8_t *code = src;
