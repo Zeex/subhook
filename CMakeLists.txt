@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 2.8.6)
-cmake_policy(SET CMP0042 NEW)
-
 project(subhook)
+
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif()
 
 set(SUBHOOK_VERSION_MAJOR 0)
 set(SUBHOOK_VERSION_MINOR 4)
