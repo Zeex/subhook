@@ -1,8 +1,8 @@
 [![Build Status][build_status]][build]
 [![Build Status - Windows][build_status_win]][build_win]
 
-SubHook is a super-simple hooking library for C/C++ that works on Linux and
-Windows. It currently supports x86 and x86-64.
+SubHook is a super-simple hooking library for C and C++ that works on Windows,
+Linux and macOS. It supports x86 only (32-bit and 64-bit).
 
 Examples
 --------
