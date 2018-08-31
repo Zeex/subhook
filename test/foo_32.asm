@@ -19,7 +19,7 @@ message:
   db 'foo() called', 0
 
 foo:
-  nop3
+  nop
   push message
   call puts
   add esp, 4
