@@ -1,9 +1,4 @@
-language: cpp
-
-compiler:
-  - gcc
-  - clang
-
+language: c
 env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=ON
@@ -14,13 +9,8 @@ env:
 install:
   - sudo apt-get update -qq
   - sudo apt-get install -y cmake gcc-multilib g++-multilib yasm
-
 before_script:
-  - cmake . -DCMAKE_C_COMPILER=${CC}
-            -DCMAKE_CXX_COMPILER=${CXX}
-            -DCMAKE_C_FLAGS=-m$BITS
-            -DCMAKE_CXX_FLAGS=-m$BITS
-
+  - cmake . -DCMAKE_C_COMPILER=${CC} -DCMAKE_C_FLAGS=-m$BITS
 script:
   - make
   - make test
