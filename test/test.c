@@ -5,11 +5,8 @@
 
 typedef void (*foo_func_t)();
 
+void foo();
 foo_func_t foo_tr = NULL;
-
-void foo() {
-  puts("foo() called");
-}
 
 void foo_hooked() {
   puts("foo_hooked() called");
