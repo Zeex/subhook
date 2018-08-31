@@ -16,7 +16,7 @@ else()
 endif()
 
 if(WIN32)
-  set(asm_format "win32${BITS}")
+  set(asm_format "win${BITS}")
 elseif(APPLE)
   set(asm_format "macho${BITS}")
 else()
