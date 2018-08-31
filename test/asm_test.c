@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <subhook.h>
 
@@ -24,12 +25,12 @@ int main() {
                                    SUBHOOK_OPTION_64BIT_OFFSET);
   if (foo_hook == NULL || subhook_install(foo_hook) < 0) {
     puts("Install failed");
-    return 1;
+    return EXIT_FAILURE;
   }
   foo();
   if (subhook_remove(foo_hook) < 0) {
     puts("Remove failed");
-    return 2;
+    return EXIT_FAILURE;
   }
   foo();
 
@@ -37,12 +38,12 @@ int main() {
 
   if (subhook_install(foo_hook) < 0) {
     puts("Install failed");
-    return 3;
+    return EXIT_FAILURE;
   }
   foo();
   if (subhook_remove(foo_hook) < 0) {
     puts("Remove failed");
-    return 4;
+    return EXIT_FAILURE;
   }
   foo();
 
@@ -53,8 +54,14 @@ int main() {
                                       SUBHOOK_OPTION_64BIT_OFFSET);
   if (subhook_install(foo_hook_tr) < 0) {
     puts("Install failed");
-    return 5;
+    return EXIT_FAILURE;
   }
   foo_tr = (foo_func_t)subhook_get_trampoline(foo_hook_tr);
+  if (foo_tr == NULL) {
+    puts("Failed to build trampoline");
+    return EXIT_FAILURE;
+  }
   foo();
+
+  return EXIT_SUCCESS;
 }
