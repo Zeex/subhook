@@ -10,6 +10,9 @@ configuration:
 environment:
   CTEST_OUTPUT_ON_FAILURE: ON
 
+install:
+  - choco install -y yasm
+
 before_build:
   - cmake .
 
