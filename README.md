@@ -103,6 +103,25 @@ int main() {
 }
 ```
 
+Known issues
+------------
+
+* If a target function (the function you are hooking) is less than N bytes 
+  in length, for example if it's a short 2-byte jump to a nearby location 
+  (sometimes compilers generate code like this), then you will not be able
+  to hook it.
+
+  N is 5 by default (1-byte jmp opcode + 32-bit offset), but it you enable 
+  the use of 64-bit offsets in 64-bit mode N becomes 14 (see the definition 
+  of `subhook_jmp64`).
+
+* Some systems protect executable code form being modified at runtime, which 
+  will not allow you to install hooks, or don't allow to mark heap-allocated 
+  memory as executable, which prevents the use of trampolines.
+  
+  For example, on Fedora you can have such problems because of SELinux (though
+  you can disable it or exclude your files).
+
 License
 -------
 
