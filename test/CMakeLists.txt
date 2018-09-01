@@ -5,14 +5,19 @@ else()
   message(FATAL_ERROR "Yasm is required to compile the test program")
 endif()
 
-if (CMAKE_C_COMPILER_ID MATCHES "GNU" OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  set(COMPILER_IS_GCC_OR_CLANG TRUE)
-endif()
-if ((COMPILER_IS_GCC_OR_CLANG AND CMAKE_C_FLAGS MATCHES "\\-m32")
-    OR (APPLE AND CMAKE_OSX_ARCHITECTURES MATCHES "i386"))
+if (CMAKE_SIZEOF_VOID_P EQUAL 4 OR SUBHOOK_FORCE_32BIT)
   set(BITS 32)
 else()
   set(BITS 64)
+endif()
+
+set(asm_file foo_${BITS}.asm)
+if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT SUBHOOK_FORCE_32BIT)
+  if(WIN32)
+    set(asm_file foo_64_win.asm)
+  elseif(UNIX)
+    set(asm_file foo_64_unix.asm)
+  endif()
 endif()
 
 if(WIN32)
@@ -22,13 +27,16 @@ elseif(APPLE)
 else()
   set(asm_format "elf${BITS}")
 endif()
-set(asm_file foo_${BITS}.asm)
 
-if(WIN32 OR APPLE)
-  set(options "-f" "${asm_format}" "--prefix=_")
-else()
-  set(options "-f" "${asm_format}")
+set(options "-f" "${asm_format}")
+if(APPLE
+    OR (WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4 OR SUBHOOK_FORCE_32BIT))
+  list(APPEND options "--prefix=_")
 endif()
+if(CMAKE_SYSTEM_NAME MATCHES "Linux")
+  list(APPEND options "-DUSE_PLT")
+endif()
+message("options=${options}")
 
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
@@ -44,14 +52,28 @@ add_executable(test_exe
 )
 
 set_target_properties(test_exe PROPERTIES OUTPUT_NAME test)
+
+if(SUBHOOK_FORCE_32BIT)
+  if(APPLE)
+    set_target_properties(test_exe PROPERTIES OSX_ARCHITECTURES i386)
+  endif()
+  if(UNIX)
+    set_property(TARGET test_exe APPEND_STRING PROPERTY
+                 COMPILE_FLAGS " -m32")
+    set_property(TARGET test_exe APPEND_STRING PROPERTY LINK_FLAGS " -m32")
+  endif()
+endif()
+
 target_link_libraries(test_exe subhook)
 
 if(MSVC)
   set_property(TARGET test_exe
-                APPEND_STRING PROPERTY LINK_FLAGS " /INCREMENTAL:NO")
-elseif(APPLE)
-  set_property(TARGET test_exe
-                APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-no_pie")
+               APPEND_STRING PROPERTY LINK_FLAGS " /INCREMENTAL:NO")
+endif()
+
+if(APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT SUBHOOK_FORCE_32BIT)
+  set_property(TARGET test_exe APPEND_STRING PROPERTY
+               LINK_FLAGS " -Wl,-no_pie")
 endif()
 
 add_test(NAME test COMMAND $<TARGET_FILE:test_exe>)

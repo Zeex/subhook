@@ -3,14 +3,17 @@ env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=ON
   matrix:
-    - BITS=32
-    - BITS=64
+    - ARCH=x86
+    - ARCH=x86_64
 
-install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y cmake gcc-multilib g++-multilib yasm
+install: |
+  sudo apt-get update -qq
+  sudo apt-get install -y cmake yasm
+  if [ $ARCH = x86 ]; then
+    sudo apt-get install -y gcc-multilib g++-multilib
+  fi
 before_script:
-  - cmake . -DCMAKE_C_COMPILER=${CC} -DCMAKE_C_FLAGS=-m$BITS
+  - cmake . -DSUBHOOK_FORCE_32BIT=`([ $ARCH = x86 ] && echo 'ON') || echo 'OFF'`
 script:
   - make
   - make test

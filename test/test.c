@@ -5,7 +5,17 @@
 
 typedef void (*foo_func_t)();
 
-void foo();
+#if SUBHOOK_BITS == 32
+  #if defined SUBHOOK_WINDOWS
+    #define FOO_CALL __cdecl
+  #elif defined SUBHOOK_UNIX
+    #define FOO_CALL __attribute__((cdecl))
+  #endif
+#else
+  #define FOO_CALL
+#endif
+
+extern void FOO_CALL foo();
 foo_func_t foo_tr = NULL;
 
 void foo_hooked() {

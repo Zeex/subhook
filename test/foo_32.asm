@@ -1,6 +1,11 @@
 extern puts
 global foo
 
+section .data
+
+message:
+  db 'foo() called', 0
+
 section .text
 
 ;; Long nop macros for nasm/yasm borrowed from nasm-utils:
@@ -15,12 +20,12 @@ section .text
 %define nop8 db 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00       ;    NOP DWORD ptr [EAX + EAX*1 + 00000000H]
 %define nop9 db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 ; 66 NOP DWORD ptr [EAX + EAX*1 + 00000000H]
 
-message:
-  db 'foo() called', 0
-
 foo:
   nop
+  push ebp
   push message
   call puts
   add esp, 4
+  pop ebp
+  xor eax, eax
   ret

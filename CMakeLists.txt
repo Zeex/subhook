@@ -16,6 +16,8 @@ set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_PATCH})
 set(SUBHOOK_STATIC OFF CACHE BOOL "Build as a static library")
 set(SUBHOOK_NO_INSTALL OFF CACHE BOOL "Do not install any files")
 set(SUBHOOK_NO_TESTS OFF CACHE BOOL "Exclude tests from build")
+set(SUBHOOK_FORCE_32BIT OFF CACHE BOOL
+  "Configure for compiling 32-bit binaries (on 64-bit systems)")
 
 set(SUBHOOK_HEADERS subhook.h)
 set(SUBHOOK_SOURCES subhook.c subhook_private.h)
@@ -31,6 +33,17 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
              APPEND PROPERTY INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(SUBHOOK_FORCE_32BIT)
+  if(APPLE)
+    set_target_properties(subhook PROPERTIES OSX_ARCHITECTURES i386)
+  endif()
+  if(UNIX)
+    set_property(TARGET subhook APPEND_STRING PROPERTY
+                 COMPILE_FLAGS " -m32")
+    set_property(TARGET subhook APPEND_STRING PROPERTY LINK_FLAGS " -m32")
+  endif()
+endif()
 
 if(SUBHOOK_STATIC)
   add_definitions(-DSUBHOOK_STATIC)
