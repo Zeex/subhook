@@ -16,8 +16,6 @@ set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_PATCH})
 set(SUBHOOK_STATIC OFF CACHE BOOL "Build as a static library")
 set(SUBHOOK_NO_INSTALL OFF CACHE BOOL "Do not install any files")
 set(SUBHOOK_NO_TESTS OFF CACHE BOOL "Exclude tests from build")
-set(SUBHOOK_BUILD_ASM_TEST OFF CACHE BOOL
-    "Build the assembly test executable (asm_test)")
 
 set(SUBHOOK_HEADERS subhook.h)
 set(SUBHOOK_SOURCES subhook.c subhook_private.h)
