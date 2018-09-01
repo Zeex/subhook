@@ -12,16 +12,15 @@ env:
 addons:
   apt:
     packages:
+      - gcc
       - gcc-multilib
       - cmake
       - yasm
-  brew:
-    packages:
-      - cmake
-      - yasm
+before_install:
+  - [ $TRAVIS_OS_NAME = osx ] && brew install yasm
 
 before_script:
-  - cmake . -DSUBHOOK_FORCE_32BIT=`([ $ARCH = x86 ] && echo 'ON') || echo 'OFF'`
+  - cmake . -DSUBHOOK_FORCE_32BIT=`([ $ARCH = x86 ] && echo ON) || echo OFF`
 script:
   - make
   - make test
