@@ -4,6 +4,16 @@
 SubHook is a super-simple hooking library for C and C++ that works on Windows,
 Linux and macOS. It supports x86 only (32-bit and 64-bit).
 
+Installation
+------------
+
+Simply copy the files to your project and include subhook.c in your build. 
+The other source files wil be `#included` by the main C file automatically 
+depending on the OS and achitecture.
+
+Use of CMake is not mandatory, the library can be built wihtout it (no extra
+build configuration required).
+
 Examples
 --------
 
