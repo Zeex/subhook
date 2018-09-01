@@ -36,7 +36,6 @@ endif()
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   list(APPEND options "-DUSE_PLT")
 endif()
-message("options=${options}")
 
 add_custom_command(
   OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
