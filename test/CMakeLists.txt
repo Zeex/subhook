@@ -1,9 +1,4 @@
-find_program(YASM_EXECUTABLE yasm)
-if(YASM_EXECUTABLE)
-  message("Yasm executable: ${YASM_EXECUTABLE}")
-else()
-  message(FATAL_ERROR "Yasm is required to compile the test program")
-endif()
+find_package(Yasm REQUIRED)
 
 if (CMAKE_SIZEOF_VOID_P EQUAL 4 OR SUBHOOK_FORCE_32BIT)
   set(BITS 32)
