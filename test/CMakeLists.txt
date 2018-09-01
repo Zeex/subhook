@@ -30,7 +30,7 @@ endif()
 
 set(options "-f" "${asm_format}")
 if(APPLE
-    OR (WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 4 OR SUBHOOK_FORCE_32BIT))
+    OR (WIN32 AND (CMAKE_SIZEOF_VOID_P EQUAL 4 OR SUBHOOK_FORCE_32BIT)))
   list(APPEND options "--prefix=_")
 endif()
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
