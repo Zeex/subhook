@@ -16,8 +16,9 @@ set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_MINOR})
 set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_PATCH})
 
 set(SUBHOOK_STATIC OFF CACHE BOOL "Build as a static library")
-set(SUBHOOK_NO_INSTALL OFF CACHE BOOL "Do not install any files")
-set(SUBHOOK_NO_TESTS OFF CACHE BOOL "Exclude tests from build")
+set(SUBHOOK_INSTALL ON CACHE BOOL 
+  "Enable installation and packaging of targets/files with CPack")
+set(SUBHOOK_TESTS ON CACHE BOOL "Enable tests")
 set(SUBHOOK_FORCE_32BIT OFF CACHE BOOL
   "Configure for compiling 32-bit binaries (on 64-bit systems)")
 
@@ -55,7 +56,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-if(NOT SUBHOOK_NO_INSTALL)
+if(SUBHOOK_INSTALL)
   install(TARGETS subhook LIBRARY DESTINATION lib
                           ARCHIVE DESTINATION lib
                           RUNTIME DESTINATION bin)
@@ -70,7 +71,7 @@ set(CPACK_PACKAGE_VERSION_PATCH ${SUBHOOK_VERSION_PATCH})
 include(CPack)
 include(CTest)
 
-if(BUILD_TESTING AND NOT SUBHOOK_NO_TESTS)
+if(BUILD_TESTING AND SUBHOOK_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif()
