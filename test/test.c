@@ -3,9 +3,9 @@
 #include <string.h>
 #include <subhook.h>
 
-typedef void (*foo_func_t)();
+typedef void (*foo_func_t)(void);
 
-#if SUBHOOK_BITS == 32
+#ifdef SUBHOOK_X86
   #if defined SUBHOOK_WINDOWS
     #define FOO_CALL __cdecl
   #elif defined SUBHOOK_UNIX
@@ -15,14 +15,14 @@ typedef void (*foo_func_t)();
   #define FOO_CALL
 #endif
 
-extern void FOO_CALL foo();
+extern void FOO_CALL foo(void);
 foo_func_t foo_tr = NULL;
 
-void foo_hooked() {
+void foo_hooked(void) {
   puts("foo_hooked() called");
 }
 
-void foo_hooked_tr() {
+void foo_hooked_tr(void) {
   puts("foo_hooked_tr() called");
   foo_tr();
 }

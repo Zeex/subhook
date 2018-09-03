@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015 Zeex
+/* Copyright (c) 2012-2018 Zeex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +39,12 @@
   typedef __int32 int32_t;
   typedef unsigned __int32 uint32_t;
   typedef __int64 int64_t;
-  #if SUBHOOK_BITS == 32
-    typedef __int32 intptr_t;
-    typedef unsigned __int32 uintptr_t;
-  #else
+  #ifdef SUBHOOK_X86_64
     typedef __int64 intptr_t;
     typedef unsigned __int64 uintptr_t;
+  #else
+    typedef __int32 intptr_t;
+    typedef unsigned __int32 uintptr_t;
   #endif
 #else
   #include <stdint.h>
@@ -162,7 +162,6 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   size_t i;
   size_t len = 0;
   size_t operand_size = 4;
-  size_t address_size = 4;
   uint8_t opcode = 0;
 
   for (i = 0; i < sizeof(prefixes) / sizeof(*prefixes); i++) {
@@ -171,18 +170,18 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
       if (prefixes[i] == 0x66) {
         operand_size = 2;
       }
-      if (prefixes[i] == 0x67) {
-        address_size = SUBHOOK_BITS / 8 / 2;
-      }
     }
   }
 
-#if SUBHOOK_BITS == 64
-  if (code[len] >= 0x40 && code[len] <= 0x4F) {
-    len++; /* it's a REX prefix */
+#ifdef SUBHOOK_X86_64
+  if ((code[len] & 0xF0) == 0x40) {
+    /* This is a REX prefix (40H - 4FH). REX prefixes are valid only in
+     * 64-bit mode.
+     */
+    uint8_t rex = code[len++];
 
-    uint8_t rex = code[len];
     if (rex & 8) {
+      /* REX.W changes size of immediate operand to 64 bits. */
       operand_size = 8;
     }
   }
@@ -219,12 +218,12 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   }
 
   if (opcodes[i].flags & MODRM) {
-    uint8_t modrm = code[len++]; /* Mod/RM byte is present */
+    uint8_t modrm = code[len++]; /* +1 for Mod/RM byte */
     uint8_t mod = modrm >> 6;
     uint8_t rm = modrm & 7;
 
     if (mod != 3 && rm == 4) {
-      uint8_t sib = code[len++]; /* SIB byte is present*/
+      uint8_t sib = code[len++]; /* +1 for SIB byte */
       uint8_t base = sib & 7;
 
       if (base == 5) {
@@ -239,7 +238,7 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
       }
     }
 
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
     if (reloc_op_offset != NULL && rm == 5) {
       *reloc_op_offset = (int32_t)len; /* RIP-relative addressing */
     }
@@ -267,12 +266,14 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
 }
 
 static size_t subhook_get_jmp_size(subhook_options_t options) {
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
   if ((options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
     return sizeof(struct subhook_jmp64);
   }
-#endif
+#else
+  (void)options;
   return sizeof(struct subhook_jmp32);
+#endif
 }
 
 static int subhook_make_jmp32(void *src, void *dst) {
@@ -296,7 +297,7 @@ static int subhook_make_jmp32(void *src, void *dst) {
   return 0;
 }
 
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
 
 static int subhook_make_jmp64(void *src, void *dst) {
   struct subhook_jmp64 *jmp = (struct subhook_jmp64 *)src;
@@ -318,12 +319,14 @@ static int subhook_make_jmp64(void *src, void *dst) {
 static int subhook_make_jmp(void *src,
                             void *dst,
                             subhook_options_t options) {
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
   if ((options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
     return subhook_make_jmp64(src, dst);
   }
-#endif
+#else
+  (void)options;
   return subhook_make_jmp32(src, dst);
+#endif
 }
 
 static int subhook_make_trampoline(void *trampoline,
@@ -481,7 +484,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src)  {
   struct subhook_jmp32 *maybe_jmp32 = (struct subhook_jmp32 *)src;
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
   struct subhook_jmp64 *maybe_jmp64 = (struct subhook_jmp64 *)src;
 #endif
 
@@ -490,7 +493,7 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src)  {
       maybe_jmp32->offset + (uintptr_t)src + sizeof(*maybe_jmp32));
   }
 
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
   if (maybe_jmp64->push_opcode == PUSH_OPCODE
     && maybe_jmp64->mov_opcode == MOV_OPCODE
     && maybe_jmp64->mov_modrm == MOV_MODRM_BYTE
