@@ -58,9 +58,9 @@
 #define MOV_OPCODE  0xC7
 #define RET_OPCODE  0xC3
 
-#define MOV_MODRM_BYTE 0x44 /* write to address + 1 byte displacement */
-#define MOV_SIB_BYTE   0x24 /* write to [rsp] */
-#define MOV_OFFSET     0x04
+#define JMP64_MOV_MODRM  0x44 /* write to address + 1 byte displacement */
+#define JMP64_MOV_SIB    0x24 /* write to [rsp] */
+#define JMP64_MOV_OFFSET 0x04
 
 #pragma pack(push, 1)
 
@@ -305,9 +305,9 @@ static int subhook_make_jmp64(void *src, void *dst) {
   jmp->push_opcode = PUSH_OPCODE;
   jmp->push_addr = (uint32_t)(uintptr_t)dst; /* truncate */
   jmp->mov_opcode = MOV_OPCODE;
-  jmp->mov_modrm = MOV_MODRM_BYTE;
-  jmp->mov_sib = MOV_SIB_BYTE;
-  jmp->mov_offset = MOV_OFFSET;
+  jmp->mov_modrm = JMP64_MOV_MODRM;
+  jmp->mov_sib = JMP64_MOV_SIB;
+  jmp->mov_offset = JMP64_MOV_OFFSET;
   jmp->mov_addr = (uint32_t)(((uintptr_t)dst) >> 32);
   jmp->ret_opcode = RET_OPCODE;
 
@@ -496,9 +496,9 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src)  {
 #ifdef SUBHOOK_X86_64
   if (maybe_jmp64->push_opcode == PUSH_OPCODE
     && maybe_jmp64->mov_opcode == MOV_OPCODE
-    && maybe_jmp64->mov_modrm == MOV_MODRM_BYTE
-    && maybe_jmp64->mov_sib == MOV_SIB_BYTE
-    && maybe_jmp64->mov_offset == MOV_OFFSET
+    && maybe_jmp64->mov_modrm == JMP64_MOV_MODRM
+    && maybe_jmp64->mov_sib == JMP64_MOV_SIB
+    && maybe_jmp64->mov_offset == JMP64_MOV_OFFSET
     && maybe_jmp64->ret_opcode == RET_OPCODE) {
     return (void *)(
       maybe_jmp64->push_addr & ((uintptr_t)maybe_jmp64->mov_addr << 32));
