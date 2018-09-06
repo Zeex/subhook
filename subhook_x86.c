@@ -272,8 +272,8 @@ static size_t subhook_get_jmp_size(subhook_options_t options) {
   }
 #else
   (void)options;
-  return sizeof(struct subhook_jmp32);
 #endif
+  return sizeof(struct subhook_jmp32);
 }
 
 static int subhook_make_jmp32(void *src, void *dst) {
@@ -325,8 +325,8 @@ static int subhook_make_jmp(void *src,
   }
 #else
   (void)options;
-  return subhook_make_jmp32(src, dst);
 #endif
+  return subhook_make_jmp32(src, dst);
 }
 
 static int subhook_make_trampoline(void *trampoline,
