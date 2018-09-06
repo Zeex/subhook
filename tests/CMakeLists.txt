@@ -40,37 +40,37 @@ add_custom_command(
   MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${asm_file}"
 )
 
-add_executable(test_exe
+add_executable(subhook_test
   test.c
   "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
 )
 
-set_target_properties(test_exe PROPERTIES OUTPUT_NAME test)
+set_target_properties(subhook_test PROPERTIES OUTPUT_NAME test)
 
 if(SUBHOOK_FORCE_32BIT)
   if(APPLE)
-    set_target_properties(test_exe PROPERTIES OSX_ARCHITECTURES i386)
+    set_target_properties(subhook_test PROPERTIES OSX_ARCHITECTURES i386)
   endif()
   if(UNIX)
-    set_property(TARGET test_exe APPEND_STRING PROPERTY
+    set_property(TARGET subhook_test APPEND_STRING PROPERTY
                  COMPILE_FLAGS " -m32")
-    set_property(TARGET test_exe APPEND_STRING PROPERTY LINK_FLAGS " -m32")
+    set_property(TARGET subhook_test APPEND_STRING PROPERTY LINK_FLAGS " -m32")
   endif()
 endif()
 
-target_link_libraries(test_exe subhook)
+target_link_libraries(subhook_test subhook)
 
 if(MSVC)
-  set_property(TARGET test_exe
+  set_property(TARGET subhook_test
                APPEND_STRING PROPERTY LINK_FLAGS " /INCREMENTAL:NO")
 endif()
 
 if(APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT SUBHOOK_FORCE_32BIT)
-  set_property(TARGET test_exe APPEND_STRING PROPERTY
+  set_property(TARGET subhook_test APPEND_STRING PROPERTY
                LINK_FLAGS " -Wl,-no_pie")
 endif()
 
-add_test(NAME test COMMAND $<TARGET_FILE:test_exe>)
+add_test(NAME test COMMAND $<TARGET_FILE:subhook_test>)
 
 set(expected_output "\
 Testing initial install[\r\n]+\

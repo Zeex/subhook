@@ -86,5 +86,5 @@ include(CTest)
 
 if(BUILD_TESTING AND SUBHOOK_TESTS)
   enable_testing()
-  add_subdirectory(test)
+  add_subdirectory(tests)
 endif()
