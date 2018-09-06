@@ -15,12 +15,20 @@ set(SUBHOOK_VERSION ${SUBHOOK_VERSION_MAJOR})
 set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_MINOR})
 set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_PATCH})
 
-set(SUBHOOK_STATIC OFF CACHE BOOL "Build as a static library")
-set(SUBHOOK_INSTALL ON CACHE BOOL
-  "Enable installation and packaging of targets/files with CPack")
-set(SUBHOOK_TESTS ON CACHE BOOL "Enable tests")
-set(SUBHOOK_FORCE_32BIT OFF CACHE BOOL
-  "Configure for compiling 32-bit binaries (on 64-bit systems)")
+macro(subhook_add_option_var name type default_value description)
+  set(${name}_DEFAULT ${default_value})
+  if(DEFINED ${name})
+    set(${name}_DEFAULT ${${name}})
+  endif()
+  set(${name} ${${name}_DEFAULT} CACHE ${type} ${description})
+endmacro()
+
+subhook_add_option_var(SUBHOOK_STATIC BOOL OFF "Build as a static library")
+subhook_add_option_var(SUBHOOK_INSTALL
+  BOOL ON "Enable installation and packaging of targets/files with CPack")
+subhook_add_option_var(SUBHOOK_TESTS BOOL ON "Enable tests")
+subhook_add_option_var(SUBHOOK_FORCE_32BIT
+  BOOL OFF "Configure for compiling 32-bit binaries (on 64-bit systems)")
 
 set(SUBHOOK_HEADERS subhook.h)
 set(SUBHOOK_SOURCES subhook.c subhook_private.h)
