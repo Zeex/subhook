@@ -50,6 +50,7 @@
   #include <stdint.h>
 #endif
 
+#define ABS(x) ((x) > 0 ? (x) : (-(x)))
 #define MAX_INSN_LEN 15 /* maximum length of x86 instruction */
 
 #define JMP_OPCODE  0xE9
@@ -280,16 +281,15 @@ static int subhook_make_jmp32(void *src, void *dst) {
   struct subhook_jmp32 *jmp = (struct subhook_jmp32 *)src;
   intptr_t src_addr = (intptr_t)src;
   intptr_t dst_addr = (intptr_t)dst;
-  int64_t distance;
+#ifdef SUBHOOK_X86_64
+  int64_t distance = ABS(src_addr - dst_addr);
+#endif
 
-  if (src_addr > dst_addr) {
-    distance = src_addr - dst_addr;
-  } else {
-    distance = dst_addr - src_addr;
-  }
+#ifdef SUBHOOK_X86_64
   if (distance < INT32_MIN || distance > INT32_MAX) {
     return -EOVERFLOW;
   }
+#endif
 
   jmp->opcode = JMP_OPCODE;
   jmp->offset = (int32_t)(dst_addr - (src_addr + sizeof(*jmp)));
