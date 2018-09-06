@@ -40,39 +40,46 @@ add_custom_command(
   MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${asm_file}"
 )
 
-add_executable(subhook_test
+add_executable(subhook_test_exe
   test.c
   "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
 )
+set_target_properties(subhook_test_exe PROPERTIES OUTPUT_NAME test)
 
-set_target_properties(subhook_test PROPERTIES OUTPUT_NAME test)
+enable_language(CXX)
+add_executable(subhook_cxx_test_exe
+  test.cpp
+  "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
+)
+set_target_properties(subhook_cxx_test_exe PROPERTIES OUTPUT_NAME test++)
 
-if(SUBHOOK_FORCE_32BIT)
-  if(APPLE)
-    set_target_properties(subhook_test PROPERTIES OSX_ARCHITECTURES i386)
+foreach(target subhook_test_exe subhook_cxx_test_exe)
+  if(SUBHOOK_FORCE_32BIT)
+    if(APPLE)
+      set_target_properties(${target} PROPERTIES OSX_ARCHITECTURES i386)
+    endif()
+    if(UNIX)
+      set_property(TARGET ${target} APPEND_STRING PROPERTY
+                   COMPILE_FLAGS " -m32")
+      set_property(TARGET ${target} APPEND_STRING PROPERTY LINK_FLAGS " -m32")
+    endif()
   endif()
-  if(UNIX)
-    set_property(TARGET subhook_test APPEND_STRING PROPERTY
-                 COMPILE_FLAGS " -m32")
-    set_property(TARGET subhook_test APPEND_STRING PROPERTY LINK_FLAGS " -m32")
+
+  target_link_libraries(${target} subhook)
+
+  if(MSVC)
+    set_property(TARGET ${target}
+                 APPEND_STRING PROPERTY LINK_FLAGS " /INCREMENTAL:NO")
   endif()
-endif()
 
-target_link_libraries(subhook_test subhook)
+  if(APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT SUBHOOK_FORCE_32BIT)
+    set_property(TARGET ${target} APPEND_STRING PROPERTY
+                 LINK_FLAGS " -Wl,-no_pie")
+  endif()
 
-if(MSVC)
-  set_property(TARGET subhook_test
-               APPEND_STRING PROPERTY LINK_FLAGS " /INCREMENTAL:NO")
-endif()
+  add_test(NAME ${target}_test COMMAND $<TARGET_FILE:${target}>)
 
-if(APPLE AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT SUBHOOK_FORCE_32BIT)
-  set_property(TARGET subhook_test APPEND_STRING PROPERTY
-               LINK_FLAGS " -Wl,-no_pie")
-endif()
-
-add_test(NAME test COMMAND $<TARGET_FILE:subhook_test>)
-
-set(expected_output "\
+  set(expected_output "\
 Testing initial install[\r\n]+\
 foo_hooked\\(\\) called[\r\n]+\
 foo\\(\\) called[\r\n]+\
@@ -83,10 +90,11 @@ Testing trampoline[\r\n]+\
 foo_hooked_tr\\(\\) called[\r\n]+\
 foo\\(\\) called[\r\n]+\
 ")
-set_tests_properties(test PROPERTIES
-                     PASS_REGULAR_EXPRESSION "${expected_output}")
+  set_tests_properties(${target}_test PROPERTIES
+                       PASS_REGULAR_EXPRESSION "${expected_output}")
 
-if(WIN32 AND NOT SUBHOOK_STATIC)
-  set_tests_properties(test PROPERTIES
-                       ENVIRONMENT PATH=$<TARGET_FILE_DIR:subhook>)
-endif()
+  if(WIN32 AND NOT SUBHOOK_STATIC)
+    set_tests_properties(${target}_test PROPERTIES
+                         ENVIRONMENT PATH=$<TARGET_FILE_DIR:subhook>)
+  endif()
+endforeach()

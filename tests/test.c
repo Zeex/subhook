@@ -32,7 +32,7 @@ int main() {
 
   subhook_t foo_hook = subhook_new((void *)foo,
                                    (void *)foo_hooked,
-                                   SUBHOOK_OPTION_64BIT_OFFSET);
+                                   SUBHOOK_64BIT_OFFSET);
   if (foo_hook == NULL || subhook_install(foo_hook) < 0) {
     puts("Install failed");
     return EXIT_FAILURE;
@@ -61,7 +61,7 @@ int main() {
 
   subhook_t foo_hook_tr = subhook_new((void *)foo,
                                       (void *)foo_hooked_tr,
-                                      SUBHOOK_OPTION_64BIT_OFFSET);
+                                      SUBHOOK_64BIT_OFFSET);
   if (subhook_install(foo_hook_tr) < 0) {
     puts("Install failed");
     return EXIT_FAILURE;

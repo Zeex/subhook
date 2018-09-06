@@ -39,7 +39,7 @@ struct subhook_struct {
   int installed;
   void *src;
   void *dst;
-  subhook_options_t options;
+  subhook_flags_t flags;
   void *code;
   void *trampoline;
   size_t jmp_size;
