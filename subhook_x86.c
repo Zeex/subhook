@@ -50,7 +50,7 @@
   #include <stdint.h>
 #endif
 
-#define ABS(x) ((x) > 0 ? (x) : (-(x)))
+#define ABS(x) ((x) >= 0 ? (x) : -(x))
 #define MAX_INSN_LEN 15 /* maximum length of x86 instruction */
 
 #define JMP_OPCODE  0xE9
