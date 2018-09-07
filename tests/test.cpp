@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <subhook.h>
 
@@ -15,7 +16,7 @@ typedef void (*foo_func_t)();
 #endif
 
 extern "C" void FOO_CALL foo();
-foo_func_t foo_tr = nullptr;
+foo_func_t foo_tr = 0;
 
 void foo_hooked() {
   std::cout << "foo_hooked() called" << std::endl;;
@@ -66,7 +67,7 @@ int main() {
     return EXIT_FAILURE;
   }
   foo_tr = (foo_func_t)foo_hook_tr.GetTrampoline();
-  if (foo_tr == nullptr) {
+  if (foo_tr == 0) {
     std::cout << "Failed to build trampoline" << std::endl;
     return EXIT_FAILURE;
   }
