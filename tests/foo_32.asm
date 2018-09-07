@@ -1,7 +1,7 @@
 extern puts
 global foo
 
-section .data
+section .rodata
 
 message:
   db 'foo() called', 0
@@ -21,11 +21,11 @@ section .text
 %define nop9 db 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 ; 66 NOP DWORD ptr [EAX + EAX*1 + 00000000H]
 
 foo:
-  nop
   push ebp
+  mov ebp, esp
+  sub esp, 4 ; align the stack to a 16-byte boundary
   push message
   call puts
-  add esp, 4
+  mov esp, ebp
   pop ebp
-  xor eax, eax
   ret

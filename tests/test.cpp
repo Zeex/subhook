@@ -9,7 +9,8 @@ typedef void (*foo_func_t)();
   #elif defined SUBHOOK_UNIX
     #define FOO_CALL __attribute__((cdecl))
   #endif
-#else
+#endif
+#ifndef FOO_CALL
   #define FOO_CALL
 #endif
 
