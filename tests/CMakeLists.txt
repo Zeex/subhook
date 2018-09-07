@@ -78,16 +78,16 @@ foreach(target subhook_test_exe subhook_cxx_test_exe)
 
   add_test(NAME ${target}_test COMMAND $<TARGET_FILE:${target}>)
 
-  set(expected_output "\
-Testing initial install[\r\n]+\
-foo_hooked\\(\\) called[\r\n]+\
-foo\\(\\) called[\r\n]+\
-Testing re-install[\r\n]+\
-foo_hooked\\(\\) called[\r\n]+\
-foo\\(\\) called[\r\n]+\
-Testing trampoline[\r\n]+\
-foo_hooked_tr\\(\\) called[\r\n]+\
-foo\\(\\) called[\r\n]+\
+  set(expected_output
+"Testing initial install
+foo_hooked\\(\\) called
+foo\\(\\) called
+Testing re-install
+foo_hooked\\(\\) called
+foo\\(\\) called
+Testing trampoline
+foo_hooked_tr\\(\\) called
+foo\\(\\) called
 ")
   set_tests_properties(${target}_test PROPERTIES
                        PASS_REGULAR_EXPRESSION "${expected_output}")
