@@ -13,7 +13,9 @@ addons:
   apt:
     packages:
       - gcc
+      - g++
       - gcc-multilib
+      - g++-multilib
       - cmake
       - yasm
 before_install:
