@@ -1,26 +1,28 @@
-language: cpp
+language: c
 
-compiler:
-  - gcc
-  - clang
-
+os:
+  - linux
+  - osx
 env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=ON
   matrix:
-    - BITS=32
-    - BITS=64
-
-install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -y cmake gcc-multilib g++-multilib
+    - ARCH=x86
+    - ARCH=x86_64
+addons:
+  apt:
+    packages:
+      - gcc
+      - g++
+      - gcc-multilib
+      - g++-multilib
+      - cmake
+      - yasm
+before_install:
+  - if [ $TRAVIS_OS_NAME == osx ]; then brew install yasm; fi
 
 before_script:
-  - cmake . -DCMAKE_C_COMPILER=${CC}
-            -DCMAKE_CXX_COMPILER=${CXX}
-            -DCMAKE_C_FLAGS=-m$BITS
-            -DCMAKE_CXX_FLAGS=-m$BITS
-
+  - cmake . -DSUBHOOK_FORCE_32BIT=`([ $ARCH = x86 ] && echo 'ON') || echo 'OFF'`
 script:
   - make
   - make test

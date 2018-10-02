@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015 Zeex
+/* Copyright (c) 2012-2018 Zeex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,17 +89,17 @@
   #endif
 #endif
 
-typedef enum subhook_options {
-  /* Use 64-bit jump method on x86-64 (requires more space). */
-  SUBHOOK_OPTION_64BIT_OFFSET = 1u << 1
-} subhook_options_t;
+typedef enum subhook_flags {
+  /* Use the 64-bit jump method on x86-64 (requires more space). */
+  SUBHOOK_64BIT_OFFSET = 1
+} subhook_flags_t;
 
 struct subhook_struct;
 typedef struct subhook_struct *subhook_t;
 
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
                                                  void *dst,
-                                                 subhook_options_t options);
+                                                 subhook_flags_t flags);
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook);
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook);
@@ -121,37 +121,37 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
 namespace subhook {
 
-enum HookOptions {
-  HookOptionsNone = 0,
-  HookOption64BitOffset = SUBHOOK_OPTION_64BIT_OFFSET
+enum HookFlags {
+  HookNoFlags = 0,
+  HookFlag64BitOffset = SUBHOOK_64BIT_OFFSET
 };
 
-inline HookOptions operator|(HookOptions o1, HookOptions o2) {
-  return static_cast<HookOptions>(
+inline HookFlags operator|(HookFlags o1, HookFlags o2) {
+  return static_cast<HookFlags>(
       static_cast<unsigned int>(o1) | static_cast<unsigned int>(o2));
 }
 
-inline HookOptions operator&(HookOptions o1, HookOptions o2) {
-  return static_cast<HookOptions>(
+inline HookFlags operator&(HookFlags o1, HookFlags o2) {
+  return static_cast<HookFlags>(
       static_cast<unsigned int>(o1) & static_cast<unsigned int>(o2));
 }
 
 class Hook {
  public:
   Hook() : hook_(0) {}
-  Hook(void *src,
-       void *dst,
-       HookOptions options = HookOptionsNone)
-    : hook_(subhook_new(src, dst, (subhook_options_t)options)) {}
+  Hook(void *src, void *dst, HookFlags flags = HookNoFlags)
+    : hook_(subhook_new(src, dst, (subhook_flags_t)flags))
+  {
+  }
 
   ~Hook() {
     subhook_remove(hook_);
     subhook_free(hook_);
   }
 
-  void *GetSrc() { return subhook_get_src(hook_); }
-  void *GetDst() { return subhook_get_dst(hook_); }
-  void *GetTrampoline() { return subhook_get_trampoline(hook_); }
+  void *GetSrc() const { return subhook_get_src(hook_); }
+  void *GetDst() const { return subhook_get_dst(hook_); }
+  void *GetTrampoline() const { return subhook_get_trampoline(hook_); }
 
   bool Install() {
     return subhook_install(hook_) >= 0;
@@ -159,9 +159,9 @@ class Hook {
 
   bool Install(void *src,
                void *dst,
-               HookOptions options = HookOptionsNone) {
+               HookFlags flags = HookNoFlags) {
     if (hook_ == 0) {
-      hook_ = subhook_new(src, dst, (subhook_options_t)options);
+      hook_ = subhook_new(src, dst, (subhook_flags_t)flags);
     }
     return Install();
   }
@@ -220,9 +220,9 @@ class ScopedHookInstall {
   ScopedHookInstall(Hook *hook,
                     void *src,
                     void *dst,
-                    HookOptions options = HookOptionsNone)
+                    HookFlags flags = HookNoFlags)
     : hook_(hook)
-    , installed_(hook_->Install(src, dst, options))
+    , installed_(hook_->Install(src, dst, flags))
   {
   }
 

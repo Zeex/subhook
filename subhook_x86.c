@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015 Zeex
+/* Copyright (c) 2012-2018 Zeex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,17 +39,18 @@
   typedef __int32 int32_t;
   typedef unsigned __int32 uint32_t;
   typedef __int64 int64_t;
-  #if SUBHOOK_BITS == 32
-    typedef __int32 intptr_t;
-    typedef unsigned __int32 uintptr_t;
-  #else
+  #ifdef SUBHOOK_X86_64
     typedef __int64 intptr_t;
     typedef unsigned __int64 uintptr_t;
+  #else
+    typedef __int32 intptr_t;
+    typedef unsigned __int32 uintptr_t;
   #endif
 #else
   #include <stdint.h>
 #endif
 
+#define ABS(x) ((x) >= 0 ? (x) : -(x))
 #define MAX_INSN_LEN 15 /* maximum length of x86 instruction */
 
 #define JMP_OPCODE  0xE9
@@ -57,9 +58,9 @@
 #define MOV_OPCODE  0xC7
 #define RET_OPCODE  0xC3
 
-#define MOV_MODRM_BYTE 0x44 /* write to address + 1 byte displacement */
-#define MOV_SIB_BYTE   0x24 /* write to [rsp] */
-#define MOV_OFFSET     0x04
+#define JMP64_MOV_MODRM  0x44 /* write to address + 1 byte displacement */
+#define JMP64_MOV_SIB    0x24 /* write to [rsp] */
+#define JMP64_MOV_OFFSET 0x04
 
 #pragma pack(push, 1)
 
@@ -156,14 +157,14 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
     /* TEST r/m8, imm8   */ {0xF6, 0, MODRM | REG_OPCODE | IMM8},
     /* TEST r/m32, imm32 */ {0xF7, 0, MODRM | REG_OPCODE | IMM32},
     /* TEST r/m8, r8     */ {0x84, 0, MODRM},
-    /* TEST r/m32, r32   */ {0x85, 0, MODRM}
+    /* TEST r/m32, r32   */ {0x85, 0, MODRM},
+    /* NOP               */ {0x90, 0, 0}
   };
 
   uint8_t *code = src;
   size_t i;
   size_t len = 0;
   size_t operand_size = 4;
-  size_t address_size = 4;
   uint8_t opcode = 0;
 
   for (i = 0; i < sizeof(prefixes) / sizeof(*prefixes); i++) {
@@ -172,18 +173,18 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
       if (prefixes[i] == 0x66) {
         operand_size = 2;
       }
-      if (prefixes[i] == 0x67) {
-        address_size = SUBHOOK_BITS / 8 / 2;
-      }
     }
   }
 
-#if SUBHOOK_BITS == 64
-  if (code[len] >= 0x40 && code[len] <= 0x4F) {
-    len++; /* it's a REX prefix */
+#ifdef SUBHOOK_X86_64
+  if ((code[len] & 0xF0) == 0x40) {
+    /* This is a REX prefix (40H - 4FH). REX prefixes are valid only in
+     * 64-bit mode.
+     */
+    uint8_t rex = code[len++];
 
-    uint8_t rex = code[len];
     if (rex & 8) {
+      /* REX.W changes size of immediate operand to 64 bits. */
       operand_size = 8;
     }
   }
@@ -220,12 +221,12 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   }
 
   if (opcodes[i].flags & MODRM) {
-    uint8_t modrm = code[len++]; /* Mod/RM byte is present */
+    uint8_t modrm = code[len++]; /* +1 for Mod/RM byte */
     uint8_t mod = modrm >> 6;
     uint8_t rm = modrm & 7; 
 
     if (mod != 3 && rm == 4) {
-      uint8_t sib = code[len++]; /* SIB byte is present*/
+      uint8_t sib = code[len++]; /* +1 for SIB byte */
       uint8_t base = sib & 7;
 
       if (base == 5) {
@@ -240,7 +241,7 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
       }
     }
 
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
     if (reloc_op_offset != NULL && rm == 5) {
       *reloc_op_offset = (int32_t)len; /* RIP-relative addressing */
     }
@@ -267,11 +268,13 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   return len;
 }
 
-static size_t subhook_get_jmp_size(subhook_options_t options) {
-#if SUBHOOK_BITS == 64
-  if ((options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
+static size_t subhook_get_jmp_size(subhook_flags_t flags) {
+#ifdef SUBHOOK_X86_64
+  if ((flags & SUBHOOK_64BIT_OFFSET) != 0) {
     return sizeof(struct subhook_jmp64);
   }
+#else
+  (void)flags;
 #endif
   return sizeof(struct subhook_jmp32);
 }
@@ -280,16 +283,15 @@ static int subhook_make_jmp32(void *src, void *dst) {
   struct subhook_jmp32 *jmp = (struct subhook_jmp32 *)src;
   intptr_t src_addr = (intptr_t)src;
   intptr_t dst_addr = (intptr_t)dst;
-  int64_t distance;
+#ifdef SUBHOOK_X86_64
+  int64_t distance = ABS(src_addr - dst_addr);
+#endif
 
-  if (src_addr > dst_addr) {
-    distance = src_addr - dst_addr;
-  } else {
-    distance = dst_addr - src_addr;
-  }
+#ifdef SUBHOOK_X86_64
   if (distance < INT32_MIN || distance > INT32_MAX) {
     return -EOVERFLOW;
   }
+#endif
 
   jmp->opcode = JMP_OPCODE;
   jmp->offset = (int32_t)(dst_addr - (src_addr + sizeof(*jmp)));
@@ -297,7 +299,7 @@ static int subhook_make_jmp32(void *src, void *dst) {
   return 0;
 }
 
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
 
 static int subhook_make_jmp64(void *src, void *dst) {
   struct subhook_jmp64 *jmp = (struct subhook_jmp64 *)src;
@@ -305,9 +307,9 @@ static int subhook_make_jmp64(void *src, void *dst) {
   jmp->push_opcode = PUSH_OPCODE;
   jmp->push_addr = (uint32_t)(uintptr_t)dst; /* truncate */
   jmp->mov_opcode = MOV_OPCODE;
-  jmp->mov_modrm = MOV_MODRM_BYTE;
-  jmp->mov_sib = MOV_SIB_BYTE;
-  jmp->mov_offset = MOV_OFFSET;
+  jmp->mov_modrm = JMP64_MOV_MODRM;
+  jmp->mov_sib = JMP64_MOV_SIB;
+  jmp->mov_offset = JMP64_MOV_OFFSET;
   jmp->mov_addr = (uint32_t)(((uintptr_t)dst) >> 32);
   jmp->ret_opcode = RET_OPCODE;
 
@@ -318,11 +320,13 @@ static int subhook_make_jmp64(void *src, void *dst) {
 
 static int subhook_make_jmp(void *src,
                             void *dst,
-                            subhook_options_t options) {
-#if SUBHOOK_BITS == 64
-  if ((options & SUBHOOK_OPTION_64BIT_OFFSET) != 0) {
+                            subhook_flags_t flags) {
+#ifdef SUBHOOK_X86_64
+  if ((flags & SUBHOOK_64BIT_OFFSET) != 0) {
     return subhook_make_jmp64(src, dst);
   }
+#else
+  (void)flags;
 #endif
   return subhook_make_jmp32(src, dst);
 }
@@ -331,7 +335,7 @@ static int subhook_make_trampoline(void *trampoline,
                                    void *src,
                                    size_t jmp_size,
                                    size_t *trampoline_len,
-                                   subhook_options_t options) {
+                                   subhook_flags_t flags) {
   size_t orig_size = 0;
   size_t insn_len;
   intptr_t trampoline_addr = (intptr_t)trampoline;
@@ -381,12 +385,12 @@ static int subhook_make_trampoline(void *trampoline,
    */
   return subhook_make_jmp((void *)(trampoline_addr + orig_size),
                           (void *)(src_addr + orig_size),
-                          options);
+                          flags);
 }
 
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
                                                  void *dst,
-                                                 subhook_options_t options) {
+                                                 subhook_flags_t flags) {
   subhook_t hook;
 
   if ((hook = malloc(sizeof(*hook))) == NULL) {
@@ -396,8 +400,8 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
   hook->installed = 0;
   hook->src = src;
   hook->dst = dst;
-  hook->options = options;
-  hook->jmp_size = subhook_get_jmp_size(hook->options);
+  hook->flags = flags;
+  hook->jmp_size = subhook_get_jmp_size(hook->flags);
   hook->trampoline_size = hook->jmp_size * 2 + MAX_INSN_LEN;
   hook->trampoline_len = 0;
 
@@ -428,7 +432,7 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
     hook->src,
     hook->jmp_size,
     &hook->trampoline_len,
-    hook->options);
+    hook->flags);
 
   if (hook->trampoline_len == 0) {
     free(hook->trampoline);
@@ -457,7 +461,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook) {
     return -EINVAL;
   }
 
-  error = subhook_make_jmp(hook->src, hook->dst, hook->options);
+  error = subhook_make_jmp(hook->src, hook->dst, hook->flags);
   if (error >= 0) {
     hook->installed = true;
     return 0;
@@ -482,7 +486,7 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook) {
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src)  {
   struct subhook_jmp32 *maybe_jmp32 = (struct subhook_jmp32 *)src;
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
   struct subhook_jmp64 *maybe_jmp64 = (struct subhook_jmp64 *)src;
 #endif
 
@@ -491,12 +495,12 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src)  {
       maybe_jmp32->offset + (uintptr_t)src + sizeof(*maybe_jmp32));
   }
 
-#if SUBHOOK_BITS == 64
+#ifdef SUBHOOK_X86_64
   if (maybe_jmp64->push_opcode == PUSH_OPCODE
     && maybe_jmp64->mov_opcode == MOV_OPCODE
-    && maybe_jmp64->mov_modrm == MOV_MODRM_BYTE
-    && maybe_jmp64->mov_sib == MOV_SIB_BYTE
-    && maybe_jmp64->mov_offset == MOV_OFFSET
+    && maybe_jmp64->mov_modrm == JMP64_MOV_MODRM
+    && maybe_jmp64->mov_sib == JMP64_MOV_SIB
+    && maybe_jmp64->mov_offset == JMP64_MOV_OFFSET
     && maybe_jmp64->ret_opcode == RET_OPCODE) {
     return (void *)(
       maybe_jmp64->push_addr & ((uintptr_t)maybe_jmp64->mov_addr << 32));

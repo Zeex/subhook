@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2015 Zeex
+/* Copyright (c) 2012-2018 Zeex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ struct subhook_struct {
   int installed;
   void *src;
   void *dst;
-  subhook_options_t options;
+  subhook_flags_t flags;
   void *code;
   void *trampoline;
   size_t jmp_size;

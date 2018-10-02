@@ -3,15 +3,16 @@ version: '{build}'
 platform:
   - x86
   - x64
-
 configuration:
   - Release
-
 environment:
   CTEST_OUTPUT_ON_FAILURE: ON
 
+install:
+  - choco install -y yasm
 before_build:
   - cmake .
-
 build_script:
   - cmake --build . --config %CONFIGURATION%
+test_script:
+  - ctest --build-config %CONFIGURATION%

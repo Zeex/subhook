@@ -1,15 +1,34 @@
-cmake_minimum_required(VERSION 2.8.6)
-cmake_policy(SET CMP0042 NEW)
+cmake_minimum_required(VERSION 2.8.12)
+project(subhook C)
 
-project(subhook)
+if(POLICY CMP0042)
+  cmake_policy(SET CMP0042 NEW)
+endif()
+
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
 set(SUBHOOK_VERSION_MAJOR 0)
-set(SUBHOOK_VERSION_MINOR 4)
+set(SUBHOOK_VERSION_MINOR 5)
 set(SUBHOOK_VERSION_PATCH 0)
 
 set(SUBHOOK_VERSION ${SUBHOOK_VERSION_MAJOR})
 set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_MINOR})
 set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_PATCH})
+
+macro(subhook_add_option_var name type default_value description)
+  set(${name}_DEFAULT ${default_value})
+  if(DEFINED ${name})
+    set(${name}_DEFAULT ${${name}})
+  endif()
+  set(${name} ${${name}_DEFAULT} CACHE ${type} ${description})
+endmacro()
+
+subhook_add_option_var(SUBHOOK_STATIC BOOL OFF "Build as a static library")
+subhook_add_option_var(SUBHOOK_INSTALL
+  BOOL ON "Enable installation and packaging of targets/files with CPack")
+subhook_add_option_var(SUBHOOK_TESTS BOOL ON "Enable tests")
+subhook_add_option_var(SUBHOOK_FORCE_32BIT
+  BOOL OFF "Configure for compiling 32-bit binaries (on 64-bit systems)")
 
 set(SUBHOOK_HEADERS subhook.h)
 set(SUBHOOK_SOURCES subhook.c subhook_private.h)
@@ -26,6 +45,22 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
              APPEND PROPERTY INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
 
+if(CMAKE_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
+  set_property(TARGET subhook
+               APPEND_STRING PROPERTY COMPILE_FLAGS "-Wall -Wextra")
+endif()
+
+if(SUBHOOK_FORCE_32BIT)
+  if(APPLE)
+    set_target_properties(subhook PROPERTIES OSX_ARCHITECTURES i386)
+  endif()
+  if(UNIX)
+    set_property(TARGET subhook APPEND_STRING PROPERTY
+                 COMPILE_FLAGS " -m32")
+    set_property(TARGET subhook APPEND_STRING PROPERTY LINK_FLAGS " -m32")
+  endif()
+endif()
+
 if(SUBHOOK_STATIC)
   add_definitions(-DSUBHOOK_STATIC)
   set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -34,7 +69,7 @@ endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-if(NOT SUBHOOK_NO_INSTALL)
+if(SUBHOOK_INSTALL)
   install(TARGETS subhook LIBRARY DESTINATION lib
                           ARCHIVE DESTINATION lib
                           RUNTIME DESTINATION bin)
@@ -49,7 +84,7 @@ set(CPACK_PACKAGE_VERSION_PATCH ${SUBHOOK_VERSION_PATCH})
 include(CPack)
 include(CTest)
 
-if(BUILD_TESTING AND NOT SUBHOOK_NO_TESTS)
+if(BUILD_TESTING AND SUBHOOK_TESTS)
   enable_testing()
-  add_subdirectory(test)
+  add_subdirectory(tests)
 endif()
