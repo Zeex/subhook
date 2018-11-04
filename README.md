@@ -116,14 +116,20 @@ int main() {
 Known issues
 ------------
 
+* `subhook_get_trampoline()` may return NULL because only a small subset of
+  x86 instructions is supported by the disassembler in this library (only 
+  common prologue instructions). As a workaround you can plug in a more
+  advanced disassembler engine in `subhook_disasm()` (currently there is no
+  simple way to do it, you have to modify the code manually).
+
 * If a target function (the function you are hooking) is less than N bytes
   in length, for example if it's a short 2-byte jump to a nearby location
   (sometimes compilers generate code like this), then you will not be able
   to hook it.
 
-  N is 5 by default (1-byte jmp opcode + 32-bit offset), but it you enable
-  the use of 64-bit offsets in 64-bit mode N becomes 14 (see the definition
-  of `subhook_jmp64`).
+  N is 5 by default: 1 byte for jmp opcode + 4 bytes for offset. But if you 
+  enable the use of 64-bit offsets in 64-bit mode N becomes 14 (see the 
+  definition of `subhook_jmp64`).
 
 * Some systems protect executable code form being modified at runtime, which
   will not allow you to install hooks, or don't allow to mark heap-allocated
