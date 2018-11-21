@@ -1,4 +1,5 @@
-/* Copyright (c) 2012-2018 Zeex
+/*
+ * Copyright (c) 2012-2018 Zeex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,9 +102,10 @@ typedef int (SUBHOOK_API *subhook_disasm_handler_t)(
   void *src,
   int *reloc_op_offset);
 
-SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
-                                                 void *dst,
-                                                 subhook_flags_t flags);
+SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(
+  void *src,
+  void *dst,
+  subhook_flags_t flags);
 SUBHOOK_EXPORT void SUBHOOK_API subhook_free(subhook_t hook);
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook);
@@ -114,14 +116,16 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_install(subhook_t hook);
 SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook);
 SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook);
 
-/* Reads hook destination address from code.
+/*
+ * Reads hook destination address from code.
  *
- * This is useful when you don't know the address or want to check whether
- * src is already hooked.
+ * This function may be useful when you don't know the address or want to
+ * check whether src is already hooked.
  */
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
-/* Set a custom disassmbler function to use in place of the default one
+/*
+ * Sets a custom disassmbler function to use in place of the default one
  * (subhook_disasm).
  *
  * The default function recognized a small st of x86 instructiosn commonly
