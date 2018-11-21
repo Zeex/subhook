@@ -85,7 +85,9 @@ struct subhook_jmp64 {
 
 #pragma pack(pop)
 
-static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
+extern subhook_disasm_handler_t subhook_disasm_handler;
+
+static int subhook_disasm(void *src, int *reloc_op_offset) {
   enum flags {
     MODRM      = 1,
     PLUS_R     = 1 << 1,
@@ -202,8 +204,8 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
 
   uint8_t *code = src;
   size_t i;
-  size_t len = 0;
-  size_t operand_size = 4;
+  int len = 0;
+  int operand_size = 4;
   uint8_t opcode = 0;
   int found_opcode = false;
 
@@ -255,7 +257,7 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
   }
 
   if (reloc_op_offset != NULL && opcodes[i].flags & RELOC) {
-    *reloc_op_offset = (int32_t)len; /* relative call or jump */
+    *reloc_op_offset = len; /* relative call or jump */
   }
 
   if (opcodes[i].flags & MODRM) {
@@ -378,6 +380,8 @@ static int subhook_make_trampoline(void *trampoline,
   size_t insn_len;
   intptr_t trampoline_addr = (intptr_t)trampoline;
   intptr_t src_addr = (intptr_t)src;
+  subhook_disasm_handler_t disasm_handler =
+    subhook_disasm_handler != NULL ? subhook_disasm_handler : subhook_disasm;
 
   assert(trampoline_len != NULL);
 
@@ -385,10 +389,10 @@ static int subhook_make_trampoline(void *trampoline,
    * to the trampoline.
    */
   while (orig_size < jmp_size) {
-    int32_t reloc_op_offset = 0;
+    int reloc_op_offset = 0;
 
     insn_len =
-      subhook_disasm((void *)(src_addr + orig_size), &reloc_op_offset);
+      disasm_handler((void *)(src_addr + orig_size), &reloc_op_offset);
 
     if (insn_len == 0) {
       return -EINVAL;

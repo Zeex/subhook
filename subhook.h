@@ -97,6 +97,10 @@ typedef enum subhook_flags {
 struct subhook_struct;
 typedef struct subhook_struct *subhook_t;
 
+typedef int (SUBHOOK_API *subhook_disasm_handler_t)(
+  void *src,
+  int *reloc_op_offset);
+
 SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
                                                  void *dst,
                                                  subhook_flags_t flags);
@@ -112,10 +116,20 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook);
 
 /* Reads hook destination address from code.
  *
- * This is useful when you don't know the address or want to check
- * whether src is already hooked.
+ * This is useful when you don't know the address or want to check whether
+ * src is already hooked.
  */
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
+
+/* Set a custom disassmbler function to use in place of the default one
+ * (subhook_disasm).
+ *
+ * The default function recognized a small st of x86 instructiosn commonly
+ * in prologues. If it fails in your situation you might want to use a more
+ * advanced disassembler library.
+ */
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_disasm_handler(
+  subhook_disasm_handler_t handler);
 
 #ifdef __cplusplus
 
@@ -134,6 +148,14 @@ inline HookFlags operator|(HookFlags o1, HookFlags o2) {
 inline HookFlags operator&(HookFlags o1, HookFlags o2) {
   return static_cast<HookFlags>(
       static_cast<unsigned int>(o1) & static_cast<unsigned int>(o2));
+}
+
+inline void *ReadHookDst(void *src) {
+  return subhook_read_dst(src);
+}
+
+inline void SetDisasmHandler(subhook_disasm_handler_t handler) {
+  subhook_set_disasm_handler(handler);
 }
 
 class Hook {
@@ -172,10 +194,6 @@ class Hook {
 
   bool IsInstalled() const {
     return !!subhook_is_installed(hook_);
-  }
-
-  static void *ReadDst(void *src) {
-    return subhook_read_dst(src);
   }
 
  private:

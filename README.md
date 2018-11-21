@@ -78,7 +78,8 @@ int main() {
 Please note that subhook has a very simple length disassmebler engine (LDE)
 that works only with most common prologue instructions like push, mov, call,
 etc. When it encounters an unknown instruction subhook_get_trampoline() will
-return NULL.
+return NULL. You can delegate instruction decoding to a custom disassembler
+of your choice via `subhook_set_disasm_handler()`.
 
 ### C++
 
@@ -117,10 +118,9 @@ Known issues
 ------------
 
 * `subhook_get_trampoline()` may return NULL because only a small subset of
-  x86 instructions is supported by the disassembler in this library (only 
+  x86 instructions is supported by the disassembler in this library (just 
   common prologue instructions). As a workaround you can plug in a more
-  advanced disassembler engine in `subhook_disasm()` (currently there is no
-  simple way to do it, you have to modify the code manually).
+  advanced instruction length decoder using `subhook_set_disasm_handler()`.
 
 * If a target function (the function you are hooking) is less than N bytes
   in length, for example if it's a short 2-byte jump to a nearby location
