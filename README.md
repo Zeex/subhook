@@ -71,7 +71,7 @@ void my_foo(int x) {
 }
 
 int main() {
-   /* Same code as in previous example. */
+   /* Same code as in the previous example. */
 }
 ```
 
@@ -94,7 +94,7 @@ typedef void (*foo_func)(int x);
 
 void my_foo(int x) {
   // ScopedHookRemove removes the specified hook and automatically re-installs
-  // it when the objectt goes out of scope (thanks to C++ destructors).
+  // it when the object goes out of scope (thanks to C++ destructors).
   subhook::ScopedHookRemove remove(&foo_hook);
 
   std::cout << "foo(" << x << ") called" << std::endl;
