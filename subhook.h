@@ -49,7 +49,7 @@
   #error Unsupported operating system
 #endif
 
-#if !defined SUHOOK_EXTERN
+#if !defined SUBHOOK_EXTERN
   #if defined __cplusplus
     #define SUBHOOK_EXTERN extern "C"
   #else
