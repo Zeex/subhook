@@ -1,4 +1,5 @@
-/* Copyright (c) 2012-2018 Zeex
+/*
+ * Copyright (c) 2012-2018 Zeex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,6 +26,8 @@
 
 #include "subhook.h"
 #include "subhook_private.h"
+
+subhook_disasm_handler_t subhook_disasm_handler = NULL;
 
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook) {
   if (hook == NULL) {
@@ -54,6 +57,13 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook) {
   return hook->installed;
 }
 
+SUBHOOK_EXPORT void SUBHOOK_API subhook_set_disasm_handler(
+  subhook_disasm_handler_t handler) {
+  subhook_disasm_handler = handler;
+}
+
+#ifndef SUBHOOK_SEPARATE_SOURCE_FILES
+
 #if defined SUBHOOK_WINDOWS
   #include "subhook_windows.c"
 #elif defined SUBHOOK_UNIX
@@ -62,4 +72,6 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook) {
 
 #if defined SUBHOOK_X86 || defined SUBHOOK_X86_64
   #include "subhook_x86.c"
+#endif
+
 #endif

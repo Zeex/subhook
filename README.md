@@ -71,14 +71,15 @@ void my_foo(int x) {
 }
 
 int main() {
-   /* Same code as in previous example. */
+   /* Same code as in the previous example. */
 }
 ```
 
 Please note that subhook has a very simple length disassmebler engine (LDE)
 that works only with most common prologue instructions like push, mov, call,
 etc. When it encounters an unknown instruction subhook_get_trampoline() will
-return NULL.
+return NULL. You can delegate instruction decoding to a custom disassembler
+of your choice via `subhook_set_disasm_handler()`.
 
 ### C++
 
@@ -93,7 +94,7 @@ typedef void (*foo_func)(int x);
 
 void my_foo(int x) {
   // ScopedHookRemove removes the specified hook and automatically re-installs
-  // it when the objectt goes out of scope (thanks to C++ destructors).
+  // it when the object goes out of scope (thanks to C++ destructors).
   subhook::ScopedHookRemove remove(&foo_hook);
 
   std::cout << "foo(" << x << ") called" << std::endl;
@@ -116,14 +117,19 @@ int main() {
 Known issues
 ------------
 
+* `subhook_get_trampoline()` may return NULL because only a small subset of
+  x86 instructions is supported by the disassembler in this library (just 
+  common prologue instructions). As a workaround you can plug in a more
+  advanced instruction length decoder using `subhook_set_disasm_handler()`.
+
 * If a target function (the function you are hooking) is less than N bytes
   in length, for example if it's a short 2-byte jump to a nearby location
   (sometimes compilers generate code like this), then you will not be able
   to hook it.
 
-  N is 5 by default (1-byte jmp opcode + 32-bit offset), but it you enable
-  the use of 64-bit offsets in 64-bit mode N becomes 14 (see the definition
-  of `subhook_jmp64`).
+  N is 5 by default: 1 byte for jmp opcode + 4 bytes for offset. But if you 
+  enable the use of 64-bit offsets in 64-bit mode N becomes 14 (see the 
+  definition of `subhook_jmp64`).
 
 * Some systems protect executable code form being modified at runtime, which
   will not allow you to install hooks, or don't allow to mark heap-allocated

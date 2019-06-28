@@ -1,4 +1,5 @@
-/* Copyright (c) 2012-2018 Zeex
+/*
+ * Copyright (c) 2012-2018 Zeex
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,7 +86,9 @@ struct subhook_jmp64 {
 
 #pragma pack(pop)
 
-static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
+extern subhook_disasm_handler_t subhook_disasm_handler;
+
+static int subhook_disasm(void *src, int *reloc_op_offset) {
   enum flags {
     MODRM      = 1,
     PLUS_R     = 1 << 1,
@@ -116,13 +119,34 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
    * https://www-ssl.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html
    */
   static struct opcode_info opcodes[] = {
+    /* ADD AL, imm8      */ {0x04, 0, IMM8},
+    /* ADD EAX, imm32    */ {0x05, 0, IMM32},
+    /* ADD r/m8, imm8    */ {0x80, 0, MODRM | REG_OPCODE | IMM8},
+    /* ADD r/m32, imm32  */ {0x81, 0, MODRM | REG_OPCODE | IMM32},
+    /* ADD r/m32, imm8   */ {0x83, 0, MODRM | REG_OPCODE | IMM8},
+    /* ADD r/m8, r8      */ {0x00, 0, MODRM},
+    /* ADD r/m32, r32    */ {0x01, 0, MODRM},
+    /* ADD r8, r/m8      */ {0x02, 0, MODRM},
+    /* ADD r32, r/m32    */ {0x03, 0, MODRM},
+    /* AND AL, imm8      */ {0x24, 0, IMM8},
+    /* AND EAX, imm32    */ {0x25, 0, IMM32},
+    /* AND r/m8, imm8    */ {0x80, 4, MODRM | REG_OPCODE | IMM8},
+    /* AND r/m32, imm32  */ {0x81, 4, MODRM | REG_OPCODE | IMM32},
+    /* AND r/m32, imm8   */ {0x83, 4, MODRM | REG_OPCODE | IMM8},
+    /* AND r/m8, r8      */ {0x20, 0, MODRM},
+    /* AND r/m32, r32    */ {0x21, 0, MODRM},
+    /* AND r8, r/m8      */ {0x22, 0, MODRM},
+    /* AND r32, r/m32    */ {0x23, 0, MODRM},
     /* CALL rel32        */ {0xE8, 0, IMM32 | RELOC},
     /* CALL r/m32        */ {0xFF, 2, MODRM | REG_OPCODE},
-    /* DEC r/m16/32      */ {0xFF, 1, MODRM | REG_OPCODE },
     /* CMP r/m16/32, imm8*/ {0x83, 7, MODRM | REG_OPCODE | IMM8 },
+    /* DEC r/m16/32      */ {0xFF, 1, MODRM | REG_OPCODE },
+    /* ENTER imm16, imm8 */ {0xC8, 0, IMM16 | IMM8},
+    /* INT 3             */ {0xCC, 0, 0},
     /* JMP rel32         */ {0xE9, 0, IMM32 | RELOC},
     /* JMP r/m32         */ {0xFF, 4, MODRM | REG_OPCODE},
     /* LEA r32,m         */ {0x8D, 0, MODRM},
+    /* LEAVE             */ {0xC9, 0, 0},
     /* MOV r/m8,r8       */ {0x88, 0, MODRM},
     /* MOV r/m32,r32     */ {0x89, 0, MODRM},
     /* MOV r8,r/m8       */ {0x8A, 0, MODRM},
@@ -137,6 +161,16 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
     /* MOV r32, imm32    */ {0xB8, 0, PLUS_R | IMM32},
     /* MOV r/m8, imm8    */ {0xC6, 0, MODRM | REG_OPCODE | IMM8},
     /* MOV r/m32, imm32  */ {0xC7, 0, MODRM | REG_OPCODE | IMM32},
+    /* NOP               */ {0x90, 0, 0},
+    /* OR AL, imm8       */ {0x0C, 0, IMM8},
+    /* OR EAX, imm32     */ {0x0D, 0, IMM32},
+    /* OR r/m8, imm8     */ {0x80, 1, MODRM | REG_OPCODE | IMM8},
+    /* OR r/m32, imm32   */ {0x81, 1, MODRM | REG_OPCODE | IMM32},
+    /* OR r/m32, imm8    */ {0x83, 1, MODRM | REG_OPCODE | IMM8},
+    /* OR r/m8, r8       */ {0x08, 0, MODRM},
+    /* OR r/m32, r32     */ {0x09, 0, MODRM},
+    /* OR r8, r/m8       */ {0x0A, 0, MODRM},
+    /* OR r32, r/m32     */ {0x0B, 0, MODRM},
     /* POP r/m32         */ {0x8F, 0, MODRM | REG_OPCODE},
     /* POP r32           */ {0x58, 0, PLUS_R},
     /* PUSH r/m32        */ {0xFF, 6, MODRM | REG_OPCODE},
@@ -150,7 +184,9 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
     /* SUB r/m8, imm8    */ {0x80, 5, MODRM | REG_OPCODE | IMM8},
     /* SUB r/m32, imm32  */ {0x81, 5, MODRM | REG_OPCODE | IMM32},
     /* SUB r/m32, imm8   */ {0x83, 5, MODRM | REG_OPCODE | IMM8},
+    /* SUB r/m8, r8      */ {0x28, 0, MODRM},
     /* SUB r/m32, r32    */ {0x29, 0, MODRM},
+    /* SUB r8, r/m8      */ {0x2A, 0, MODRM},
     /* SUB r32, r/m32    */ {0x2B, 0, MODRM},
     /* TEST AL, imm8     */ {0xA8, 0, IMM8},
     /* TEST EAX, imm32   */ {0xA9, 0, IMM32},
@@ -158,15 +194,23 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
     /* TEST r/m32, imm32 */ {0xF7, 0, MODRM | REG_OPCODE | IMM32},
     /* TEST r/m8, r8     */ {0x84, 0, MODRM},
     /* TEST r/m32, r32   */ {0x85, 0, MODRM},
-    /* XOR r32,r/m32     */ {0x33, 0, MODRM },
-    /* NOP               */ {0x90, 0, 0}
+    /* XOR AL, imm8      */ {0x34, 0, IMM8},
+    /* XOR EAX, imm32    */ {0x35, 0, IMM32},
+    /* XOR r/m8, imm8    */ {0x80, 6, MODRM | REG_OPCODE | IMM8},
+    /* XOR r/m32, imm32  */ {0x81, 6, MODRM | REG_OPCODE | IMM32},
+    /* XOR r/m32, imm8   */ {0x83, 6, MODRM | REG_OPCODE | IMM8},
+    /* XOR r/m8, r8      */ {0x30, 0, MODRM},
+    /* XOR r/m32, r32    */ {0x31, 0, MODRM},
+    /* XOR r8, r/m8      */ {0x32, 0, MODRM},
+    /* XOR r32, r/m32    */ {0x33, 0, MODRM}
   };
 
   uint8_t *code = src;
   size_t i;
-  size_t len = 0;
-  size_t operand_size = 4;
+  int len = 0;
+  int operand_size = 4;
   uint8_t opcode = 0;
+  int found_opcode = false;
 
   for (i = 0; i < sizeof(prefixes) / sizeof(*prefixes); i++) {
     if (code[len] == prefixes[i]) {
@@ -192,33 +236,31 @@ static size_t subhook_disasm(void *src, int32_t *reloc_op_offset) {
 #endif
 
   for (i = 0; i < sizeof(opcodes) / sizeof(*opcodes); i++) {
-    int found = false;
-
     if (code[len] == opcodes[i].opcode) {
       if (opcodes[i].flags & REG_OPCODE) {
-        found = ((code[len + 1] >> 3) & 7) == opcodes[i].reg_opcode;
+        found_opcode = ((code[len + 1] >> 3) & 7) == opcodes[i].reg_opcode;
       } else {
-        found = true;
+        found_opcode = true;
       }
     }
 
     if ((opcodes[i].flags & PLUS_R)
       && (code[len] & 0xF8) == opcodes[i].opcode) {
-      found = true;
+      found_opcode = true;
     }
 
-    if (found) {
+    if (found_opcode) {
       opcode = code[len++];
       break;
     }
   }
 
-  if (opcode == 0) {
+  if (!found_opcode) {
     return 0;
   }
 
   if (reloc_op_offset != NULL && opcodes[i].flags & RELOC) {
-    *reloc_op_offset = (int32_t)len; /* relative call or jump */
+    *reloc_op_offset = len; /* relative call or jump */
   }
 
   if (opcodes[i].flags & MODRM) {
@@ -341,6 +383,8 @@ static int subhook_make_trampoline(void *trampoline,
   size_t insn_len;
   intptr_t trampoline_addr = (intptr_t)trampoline;
   intptr_t src_addr = (intptr_t)src;
+  subhook_disasm_handler_t disasm_handler =
+    subhook_disasm_handler != NULL ? subhook_disasm_handler : subhook_disasm;
 
   assert(trampoline_len != NULL);
 
@@ -348,10 +392,10 @@ static int subhook_make_trampoline(void *trampoline,
    * to the trampoline.
    */
   while (orig_size < jmp_size) {
-    int32_t reloc_op_offset = 0;
+    int reloc_op_offset = 0;
 
     insn_len =
-      subhook_disasm((void *)(src_addr + orig_size), &reloc_op_offset);
+      disasm_handler((void *)(src_addr + orig_size), &reloc_op_offset);
 
     if (insn_len == 0) {
       return -EINVAL;
