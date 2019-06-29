@@ -139,6 +139,8 @@ static int subhook_disasm(void *src, int *reloc_op_offset) {
     /* AND r32, r/m32    */ {0x23, 0, MODRM},
     /* CALL rel32        */ {0xE8, 0, IMM32 | RELOC},
     /* CALL r/m32        */ {0xFF, 2, MODRM | REG_OPCODE},
+    /* CMP r/m16/32, imm8*/ {0x83, 7, MODRM | REG_OPCODE | IMM8 },
+    /* DEC r/m16/32      */ {0xFF, 1, MODRM | REG_OPCODE },
     /* ENTER imm16, imm8 */ {0xC8, 0, IMM16 | IMM8},
     /* INT 3             */ {0xCC, 0, 0},
     /* JMP rel32         */ {0xE9, 0, IMM32 | RELOC},
@@ -264,7 +266,7 @@ static int subhook_disasm(void *src, int *reloc_op_offset) {
   if (opcodes[i].flags & MODRM) {
     uint8_t modrm = code[len++]; /* +1 for Mod/RM byte */
     uint8_t mod = modrm >> 6;
-    uint8_t rm = modrm & 7;
+    uint8_t rm = modrm & 7; 
 
     if (mod != 3 && rm == 4) {
       uint8_t sib = code[len++]; /* +1 for SIB byte */
