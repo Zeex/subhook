@@ -88,7 +88,7 @@ struct subhook_jmp64 {
 
 extern subhook_disasm_handler_t subhook_disasm_handler;
 
-static int subhook_disasm(void *src, int *reloc_op_offset) {
+SUBHOOK_EXPORT int SUBHOOK_API subhook_disasm(void *src, int *reloc_op_offset) {
   enum flags {
     MODRM      = 1,
     PLUS_R     = 1 << 1,

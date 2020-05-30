@@ -125,6 +125,12 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_remove(subhook_t hook);
 SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
 
 /*
+ * Returns the length of the first instruction in src. You can replace it with
+ * a custom function via subhook_set_disasm_handler.
+ */
+SUBHOOK_EXPORT int SUBHOOK_API subhook_disasm(void *src, int *reloc_op_offset);
+
+/*
  * Sets a custom disassmbler function to use in place of the default one
  * (subhook_disasm).
  *
