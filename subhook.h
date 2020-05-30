@@ -164,7 +164,7 @@ inline void SetDisasmHandler(subhook_disasm_handler_t handler) {
 
 class Hook {
  public:
-  Hook() : hook_(0) {}
+  Hook() : hook_(nullptr) {}
   Hook(void *src, void *dst, HookFlags flags = HookNoFlags)
     : hook_(subhook_new(src, dst, (subhook_flags_t)flags))
   {
@@ -180,20 +180,20 @@ class Hook {
   void *GetTrampoline() const { return subhook_get_trampoline(hook_); }
 
   bool Install() {
-    return subhook_install(hook_) >= 0;
+    return subhook_install(hook_) == 0;
   }
 
   bool Install(void *src,
                void *dst,
                HookFlags flags = HookNoFlags) {
-    if (hook_ == 0) {
+    if (hook_ == nullptr) {
       hook_ = subhook_new(src, dst, (subhook_flags_t)flags);
     }
     return Install();
   }
 
   bool Remove() {
-    return subhook_remove(hook_) >= 0;
+    return subhook_remove(hook_) == 0;
   }
 
   bool IsInstalled() const {
