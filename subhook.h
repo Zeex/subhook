@@ -27,6 +27,8 @@
 #ifndef SUBHOOK_H
 #define SUBHOOK_H
 
+#include <stddef.h>
+
 #if defined _M_IX86 || defined __i386__
   #define SUBHOOK_X86
   #define SUBHOOK_BITS 32
@@ -170,7 +172,7 @@ inline void SetDisasmHandler(subhook_disasm_handler_t handler) {
 
 class Hook {
  public:
-  Hook() : hook_(nullptr) {}
+  Hook() : hook_(NULL) {}
   Hook(void *src, void *dst, HookFlags flags = HookNoFlags)
     : hook_(subhook_new(src, dst, (subhook_flags_t)flags))
   {
@@ -192,12 +194,12 @@ class Hook {
   bool Install(void *src,
                void *dst,
                HookFlags flags = HookNoFlags) {
-    if (hook_ != nullptr) {
+    if (hook_ != NULL) {
       subhook_remove(hook_);
       subhook_free(hook_);
     }
     hook_ = subhook_new(src, dst, (subhook_flags_t)flags);
-    if (hook_ == nullptr) {
+    if (hook_ == NULL) {
       return false;
     }
     return Install();
