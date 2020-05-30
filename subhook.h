@@ -186,8 +186,13 @@ class Hook {
   bool Install(void *src,
                void *dst,
                HookFlags flags = HookNoFlags) {
+    if (hook_ != nullptr) {
+      subhook_remove(hook_);
+      subhook_free(hook_);
+    }
+    hook_ = subhook_new(src, dst, (subhook_flags_t)flags);
     if (hook_ == nullptr) {
-      hook_ = subhook_new(src, dst, (subhook_flags_t)flags);
+      return false;
     }
     return Install();
   }
@@ -211,8 +216,8 @@ class Hook {
 class ScopedHookRemove {
  public:
   ScopedHookRemove(Hook *hook)
-    : hook_(hook)
-    , removed_(hook_->Remove())
+    : hook_(hook),
+      removed_(hook_->Remove())
   {
   }
 
@@ -234,8 +239,8 @@ class ScopedHookRemove {
 class ScopedHookInstall {
  public:
   ScopedHookInstall(Hook *hook)
-    : hook_(hook)
-    , installed_(hook_->Install())
+    : hook_(hook),
+      installed_(hook_->Install())
   {
   }
 
@@ -243,8 +248,8 @@ class ScopedHookInstall {
                     void *src,
                     void *dst,
                     HookFlags flags = HookNoFlags)
-    : hook_(hook)
-    , installed_(hook_->Install(src, dst, flags))
+    : hook_(hook),
+      installed_(hook_->Install(src, dst, flags))
   {
   }
 
