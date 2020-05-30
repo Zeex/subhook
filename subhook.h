@@ -128,9 +128,9 @@ SUBHOOK_EXPORT void *SUBHOOK_API subhook_read_dst(void *src);
  * Sets a custom disassmbler function to use in place of the default one
  * (subhook_disasm).
  *
- * The default function recognized a small st of x86 instructiosn commonly
- * in prologues. If it fails in your situation you might want to use a more
- * advanced disassembler library.
+ * The default function can recognize only a small subset of x86 instructions
+ * commonly used in prologues. If it fails in your situation, you might want
+ * to use a more advanced disassembler library.
  */
 SUBHOOK_EXPORT void SUBHOOK_API subhook_set_disasm_handler(
   subhook_disasm_handler_t handler);
