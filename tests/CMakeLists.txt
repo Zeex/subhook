@@ -10,8 +10,10 @@ set(asm_file foo_${BITS}.asm)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND NOT SUBHOOK_FORCE_32BIT)
   if(WIN32)
     set(asm_file foo_64_win.asm)
+    set(asm_obj_file ${asm_file}.obj)
   elseif(UNIX)
     set(asm_file foo_64_unix.asm)
+    set(asm_obj_file ${asm_file}.o)
   endif()
 endif()
 
@@ -32,23 +34,23 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 endif()
 
 add_custom_command(
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${asm_obj_file}"
   COMMAND "${YASM_EXECUTABLE}" ${options} "-o"
-    "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
+    "${CMAKE_CURRENT_BINARY_DIR}/${asm_obj_file}"
     "${CMAKE_CURRENT_SOURCE_DIR}/${asm_file}"
   MAIN_DEPENDENCY "${CMAKE_CURRENT_SOURCE_DIR}/${asm_file}"
 )
 
 add_executable(subhook_test_exe
   test.c
-  "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
+  "${CMAKE_CURRENT_BINARY_DIR}/${asm_obj_file}"
 )
 set_target_properties(subhook_test_exe PROPERTIES OUTPUT_NAME test)
 
 enable_language(CXX)
 add_executable(subhook_cxx_test_exe
   test.cpp
-  "${CMAKE_CURRENT_BINARY_DIR}/${asm_file}.obj"
+  "${CMAKE_CURRENT_BINARY_DIR}/${asm_obj_file}"
 )
 set_target_properties(subhook_cxx_test_exe PROPERTIES OUTPUT_NAME test++)
 
