@@ -3,6 +3,7 @@ language: c
 os:
   - linux
   - osx
+  - freebsd
 env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=ON
@@ -20,6 +21,7 @@ addons:
       - yasm
 before_install:
   - if [ $TRAVIS_OS_NAME == osx ]; then brew install yasm; fi
+  - if [ $TRAVIS_OS_NAME == freebsd ]; then sudo pkg install -y yasm; fi
 
 before_script:
   - cmake . -DSUBHOOK_FORCE_32BIT=`([ $ARCH = x86 ] && echo 'ON') || echo 'OFF'`
