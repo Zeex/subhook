@@ -63,6 +63,9 @@
 #define JMP64_MOV_SIB    0x24 /* write to [rsp] */
 #define JMP64_MOV_OFFSET 0x04
 
+#define CHECK_INT32_OVERFLOW(x) \
+  ((int64_t)(x) < INT32_MIN || ((int64_t)(x)) > INT32_MAX)
+
 #pragma pack(push, 1)
 
 struct subhook_jmp32 {
@@ -336,7 +339,7 @@ static int subhook_make_jmp32(void *src, void *dst) {
 #endif
 
 #ifdef SUBHOOK_X86_64
-  if (distance < INT32_MIN || distance > INT32_MAX) {
+  if (CHECK_INT32_OVERFLOW(distance)) {
     return -EOVERFLOW;
   }
 #endif
@@ -412,17 +415,27 @@ static int subhook_make_trampoline(void *trampoline,
            (void *)(src_addr + orig_size),
            insn_len);
 
-    /* If the operand is a relative address, such as found in calls or
-     * jumps, it needs to be relocated because the original code and the
-     * trampoline reside at different locations in memory.
+    /* If the operand is a relative address, such as found in calls or jumps,
+     * it needs to be relocated because the original code and the trampoline
+     * reside at different locations in memory.
      */
     if (reloc_op_offset > 0) {
-      /* Calculate how far our trampoline is from the source and change
-       * the address accordingly.
+      /* Calculate how far our trampoline is from the source and change the
+       * address accordingly.
        */
-      int32_t offset = (int32_t)(trampoline_addr - src_addr);
+      intptr_t offset = trampoline_addr - src_addr;
+#ifdef SUBHOOK_X86_64
+      if (CHECK_INT32_OVERFLOW(offset)) {
+        /*
+         * Oops! It looks like the two locations are too far away from each
+         * other! This is not going to work...
+         */
+        *trampoline_len = 0;
+        return -EOVERFLOW;
+      }
+#endif
       int32_t *op = (int32_t *)(trampoline_addr + orig_size + reloc_op_offset);
-      *op -= offset;
+      *op -= (int32_t)offset;
     }
 
     orig_size += insn_len;
@@ -480,7 +493,7 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
     hook->jmp_size,
     &hook->trampoline_len,
     hook->flags);
-  if (result != 0) {
+  if (result != 0 && result != -EOVERFLOW) {
     goto error_exit;
   }
 
