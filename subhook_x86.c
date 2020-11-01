@@ -458,18 +458,16 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
   subhook_t hook;
   int result;
 
-  hook = malloc(sizeof(*hook));
+  hook = calloc(1, sizeof(*hook));
   if (hook == NULL) {
     return NULL;
   }
 
-  hook->installed = 0;
   hook->src = src;
   hook->dst = dst;
   hook->flags = flags;
   hook->jmp_size = subhook_get_jmp_size(hook->flags);
   hook->trampoline_size = hook->jmp_size * 2 + MAX_INSN_LEN;
-  hook->trampoline_len = 0;
 
   hook->code = malloc(hook->jmp_size);
   if (hook->code == NULL) {
