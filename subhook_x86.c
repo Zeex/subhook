@@ -268,13 +268,19 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_disasm(void *src, int *reloc_op_offset) {
   }
 
   if (reloc_op_offset != NULL && opcodes[i].flags & RELOC) {
-    *reloc_op_offset = len; /* relative call or jump */
+    /* Either a call or a jump instruction that uses an absolute or relative
+     * 32-bit address.
+     *
+     * Note: We don't support short (8-bit) offsets at the moment, so the
+     * caller can assume the operand will be always 4 bytes.
+     */
+    *reloc_op_offset = len;
   }
 
   if (opcodes[i].flags & MODRM) {
     uint8_t modrm = code[len++]; /* +1 for Mod/RM byte */
     uint8_t mod = modrm >> 6;
-    uint8_t rm = modrm & 0x07; 
+    uint8_t rm = modrm & 0x07;
 
     if (mod != 3 && rm == 4) {
       uint8_t sib = code[len++]; /* +1 for SIB byte */
