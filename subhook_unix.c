@@ -28,15 +28,26 @@
 #include <unistd.h>
 #include <sys/mman.h>
 
-void *subhook_unprotect(void *address, size_t size) {
+#define SUBHOOK_CODE_PROTECT_FLAGS (PROT_READ | PROT_WRITE | PROT_EXEC)
+
+int subhook_unprotect(void *address, size_t size) {
   long pagesize;
 
   pagesize = sysconf(_SC_PAGESIZE);
   address = (void *)((long)address & ~(pagesize - 1));
 
-  if (mprotect(address, size, PROT_READ | PROT_WRITE | PROT_EXEC) == 0) {
-    return address;
-  } else {
-    return NULL;
-  }
+  return mprotect(address, size, SUBHOOK_CODE_PROTECT_FLAGS);
+}
+
+void *subhook_alloc_code(size_t size) {
+  return mmap(NULL,
+              size,
+              SUBHOOK_CODE_PROTECT_FLAGS,
+              MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT,
+              -1,
+              0);
+}
+
+int subhok_free_code(void *address, size_t size) {
+  return munmap(address, size);
 }

@@ -58,6 +58,8 @@ int main() {
   }
   foo();
 
+  subhook_free(foo_hook);
+
   puts("Testing trampoline");
 
   subhook_t foo_hook_tr = subhook_new((void *)foo,
@@ -73,6 +75,8 @@ int main() {
     return EXIT_FAILURE;
   }
   foo();
+
+  subhook_free(foo_hook_tr);
 
   return EXIT_SUCCESS;
 }
