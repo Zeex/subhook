@@ -52,5 +52,8 @@ void *subhook_alloc_code(size_t size) {
 }
 
 int subhok_free_code(void *address, size_t size) {
+  if (address == NULL) {
+    return 0;
+  }
   return munmap(address, size);
 }

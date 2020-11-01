@@ -47,5 +47,9 @@ void *subhook_alloc_code(size_t size) {
 
 int subhok_free_code(void *address, size_t size) {
   (void)size;
+
+  if (address == NULL) {
+    return 0;
+  }
   return !VirtualFree(address, 0, MEM_RELEASE);
 }
