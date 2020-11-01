@@ -274,11 +274,11 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_disasm(void *src, int *reloc_op_offset) {
   if (opcodes[i].flags & MODRM) {
     uint8_t modrm = code[len++]; /* +1 for Mod/RM byte */
     uint8_t mod = modrm >> 6;
-    uint8_t rm = modrm & 7; 
+    uint8_t rm = modrm & 0x07; 
 
     if (mod != 3 && rm == 4) {
       uint8_t sib = code[len++]; /* +1 for SIB byte */
-      uint8_t base = sib & 7;
+      uint8_t base = sib & 0x07;
 
       if (base == 5) {
         /* The SIB is followed by a disp32 with no base if the MOD is 00B.
@@ -293,8 +293,9 @@ SUBHOOK_EXPORT int SUBHOOK_API subhook_disasm(void *src, int *reloc_op_offset) {
     }
 
 #ifdef SUBHOOK_X86_64
-    if (reloc_op_offset != NULL && rm == 5) {
-      *reloc_op_offset = (int32_t)len; /* RIP-relative addressing */
+    if (reloc_op_offset != NULL && mod == 0 && rm == 5) {
+      /* RIP-relative addressing: target is at [RIP + disp32]. */
+      *reloc_op_offset = (int32_t)len;
     }
 #endif
 
