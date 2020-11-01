@@ -43,7 +43,10 @@ void *subhook_alloc_code(size_t size) {
   return mmap(NULL,
               size,
               SUBHOOK_CODE_PROTECT_FLAGS,
-              MAP_PRIVATE | MAP_ANONYMOUS | MAP_32BIT,
+              #ifdef MAP_32BIT
+                MAP_32BIT |
+              #endif
+              MAP_PRIVATE | MAP_ANONYMOUS,
               -1,
               0);
 }
