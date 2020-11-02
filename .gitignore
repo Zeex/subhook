@@ -1,0 +1,73 @@
+# General
+.DS_Store
+Thumbs.db
+._*
+*.swp
+*~
+*.bak
+*.log*
+*.core*
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# CMake
+.cmake
+CMakeLists.txt.user*
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+CPackConfig.cmake
+CPackSourceConfig.cmake
+DartConfiguration.tcl
+Testing
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# KDevelop
+*.kdev4
+.kdev4/
+
+# Visual Studio
+.vs
+.vscode
+*.sln
+*.suo
+*.sdf
+
+# Makefiles (geerated by CMake)
+Makefile
+*.make
