@@ -50,6 +50,6 @@ struct subhook_struct {
 
 int subhook_unprotect(void *address, size_t size);
 void *subhook_alloc_code(size_t size);
-int subhok_free_code(void *address, size_t size);
+int subhook_free_code(void *address, size_t size);
 
 #endif /* SUBHOOK_PRIVATE_H */
