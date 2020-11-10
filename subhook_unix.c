@@ -40,15 +40,18 @@ int subhook_unprotect(void *address, size_t size) {
 }
 
 void *subhook_alloc_code(size_t size) {
-  return mmap(NULL,
-              size,
-              SUBHOOK_CODE_PROTECT_FLAGS,
-              #ifdef MAP_32BIT
-                MAP_32BIT |
-              #endif
-              MAP_PRIVATE | MAP_ANONYMOUS,
-              -1,
-              0);
+  void *address;
+
+  address = mmap(NULL,
+                 size,
+                 SUBHOOK_CODE_PROTECT_FLAGS,
+                 #if defined MAP_32BIT && !defined __APPLE__
+                   MAP_32BIT |
+                 #endif
+                 MAP_PRIVATE | MAP_ANONYMOUS,
+                 -1,
+                 0);
+  return address == MAP_FAILED ? NULL : address;
 }
 
 int subhook_free_code(void *address, size_t size) {
