@@ -27,7 +27,7 @@ With CMake:
    * `SUBHOOK_FORCE_32BIT` - Configure for compiling 32-bit binaries on 64-bit
      systems (default is `OFF`)
 
-Use of CMake is not mandatory, the library can be built wihtout it (no extra
+Use of CMake is not mandatory, the library can be built without it (no extra
 build configuration is required).
 
 Examples
