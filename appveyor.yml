@@ -11,7 +11,9 @@ environment:
 install:
   - choco install -y yasm
 before_build:
-  - cmake .
+  - if %PLATFORM% == x86 set BUILD_ARCH=Win32
+  - if %PLATFORM% == x64 set BUILD_ARCH=x64
+  - cmake . -A %BUILD_ARCH%
 build_script:
   - cmake --build . --config %CONFIGURATION%
 test_script:
