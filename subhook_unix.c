@@ -50,9 +50,7 @@ void *subhook_alloc_code(void* src_addr, size_t size, subhook_flags_t flags) {
   if ((flags & SUBHOOK_TRY_ALLOCATE_TRAMPOLINE_NEAR_SOURCE) != 0) {
     // Go over /proc/<pid>/maps to find closeby unmapped pages.
     void* preferred_addr = NULL;
-    char maps_fpath[40];
-    sprintf(maps_fpath, "/proc/%ld/maps", (int64_t)getpid());
-    FILE* fp = fopen(maps_fpath, "r");
+    FILE* fp = fopen("/proc/self/maps", "r");
     if (fp != NULL) {
       int64_t mapped_begin = 0, mapped_end = 0;
       while (!feof(fp)) {
