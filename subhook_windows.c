@@ -40,7 +40,9 @@ int subhook_unprotect(void *address, size_t size) {
   return !result;
 }
 
-void *subhook_alloc_code(void*, size_t size, subhook_flags_t) {
+void *subhook_alloc_code(void* src_addr, size_t size, subhook_flags_t flags) {
+  (void)src_addr;
+  (void)flags;
   return VirtualAlloc(NULL,
                       size,
                       MEM_COMMIT | MEM_RESERVE,
