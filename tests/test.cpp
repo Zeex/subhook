@@ -32,7 +32,8 @@ int main() {
 
   subhook::Hook foo_hook((void *)foo,
                          (void *)foo_hooked,
-                         subhook::HookFlag64BitOffset);
+                         subhook::HookFlag64BitOffset
+                         | subhook::HookFlagTryAllocateTrampolineNearSource);
   if (!foo_hook.Install()) {
     std::cout << "Install failed" << std::endl;
     return EXIT_FAILURE;
@@ -61,7 +62,8 @@ int main() {
 
   subhook::Hook foo_hook_tr((void *)foo,
                             (void *)foo_hooked_tr,
-                            subhook::HookFlag64BitOffset);
+                            subhook::HookFlag64BitOffset
+                            | subhook::HookFlagTryAllocateTrampolineNearSource);
   if (!foo_hook_tr.Install()) {
     std::cout << "Install failed" << std::endl;
     return EXIT_FAILURE;

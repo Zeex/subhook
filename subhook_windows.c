@@ -27,6 +27,8 @@
 #include <stddef.h>
 #include <windows.h>
 
+#include "subhook_private.h"
+
 #define SUBHOOK_CODE_PROTECT_FLAGS PAGE_EXECUTE_READWRITE
 
 int subhook_unprotect(void *address, size_t size) {
@@ -38,7 +40,7 @@ int subhook_unprotect(void *address, size_t size) {
   return !result;
 }
 
-void *subhook_alloc_code(size_t size) {
+void *subhook_alloc_code(void*, size_t size, subhook_flags_t) {
   return VirtualAlloc(NULL,
                       size,
                       MEM_COMMIT | MEM_RESERVE,

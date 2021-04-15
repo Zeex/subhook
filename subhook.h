@@ -91,7 +91,9 @@
 
 typedef enum subhook_flags {
   /* Use the 64-bit jump method on x86-64 (requires more space). */
-  SUBHOOK_64BIT_OFFSET = 1
+  SUBHOOK_64BIT_OFFSET = 1,
+  /* Best effort trying to allocate trampoline code near source function. */
+  SUBHOOK_TRY_ALLOCATE_TRAMPOLINE_NEAR_SOURCE = 1 << 1
 } subhook_flags_t;
 
 struct subhook_struct;
@@ -146,7 +148,8 @@ namespace subhook {
 
 enum HookFlags {
   HookNoFlags = 0,
-  HookFlag64BitOffset = SUBHOOK_64BIT_OFFSET
+  HookFlag64BitOffset = SUBHOOK_64BIT_OFFSET,
+  HookFlagTryAllocateTrampolineNearSource = SUBHOOK_TRY_ALLOCATE_TRAMPOLINE_NEAR_SOURCE
 };
 
 inline HookFlags operator|(HookFlags o1, HookFlags o2) {

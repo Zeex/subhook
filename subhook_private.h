@@ -29,6 +29,8 @@
 
 #include <stddef.h>
 
+#include "subhook.h"
+
 #ifndef true
   #define true 1
 #endif
@@ -49,7 +51,7 @@ struct subhook_struct {
 };
 
 int subhook_unprotect(void *address, size_t size);
-void *subhook_alloc_code(size_t size);
+void *subhook_alloc_code(void* src_addr, size_t size, subhook_flags_t flags);
 int subhook_free_code(void *address, size_t size);
 
 #endif /* SUBHOOK_PRIVATE_H */

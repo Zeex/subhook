@@ -487,7 +487,9 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
     goto error_exit;
   }
 
-  hook->trampoline = subhook_alloc_code(hook->trampoline_size);
+  hook->trampoline = subhook_alloc_code(hook->src,
+                                        hook->trampoline_size,
+                                        hook->flags);
   if (hook->trampoline != NULL) {
     error = subhook_make_trampoline(hook->trampoline,
                                     hook->src,
