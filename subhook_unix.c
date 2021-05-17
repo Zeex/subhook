@@ -45,10 +45,12 @@ int subhook_unprotect(void *address, size_t size) {
 
 
 void *subhook_alloc_code(void* src_addr, size_t size, subhook_flags_t flags) {
+  (void)src_addr;
+  (void)flags;
   void *address;
 #if defined __linux__ && defined MAP_FIXED_NOREPLACE && defined SUBHOOK_X86_64
   if ((flags & SUBHOOK_TRY_ALLOCATE_TRAMPOLINE_NEAR_SOURCE) != 0) {
-    // Go over /proc/<pid>/maps to find closeby unmapped pages.
+    // Go over /proc/self/maps to find closeby unmapped pages.
     void* preferred_addr = NULL;
     FILE* fp = fopen("/proc/self/maps", "r");
     if (fp != NULL) {
@@ -57,9 +59,10 @@ void *subhook_alloc_code(void* src_addr, size_t size, subhook_flags_t flags) {
         int64_t prev_mapped_end = mapped_end;
         fscanf(fp, "%lx-%lx", &mapped_begin, &mapped_end);
 
-        // Assume the /proc/<pid>/maps file is sorted by mem addr.
+        // Assume the /proc/self/maps file is sorted by mem addr.
         // Find first unmapped mem range above src_addr.
-        if ((int64_t)src_addr <= prev_mapped_end && prev_mapped_end < mapped_begin) {
+        if ((int64_t)src_addr < prev_mapped_end
+            && prev_mapped_end + size <= mapped_begin) {
           preferred_addr = (void*)prev_mapped_end;
           break;
         }
