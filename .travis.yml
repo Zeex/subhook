@@ -4,6 +4,8 @@ os:
   - linux
   - osx
   - freebsd
+osx_image:
+  - xcode12
 env:
   global:
     - CTEST_OUTPUT_ON_FAILURE=ON
