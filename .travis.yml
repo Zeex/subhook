@@ -21,6 +21,10 @@ addons:
       - g++-multilib
       - cmake
       - yasm
+jobs:
+  exclude:
+    - os: osx
+      env: ARCH=x86
 before_install:
   - if [ $TRAVIS_OS_NAME == osx ]; then brew install yasm; fi
   - if [ $TRAVIS_OS_NAME == freebsd ]; then sudo pkg install -y yasm; fi
