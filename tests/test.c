@@ -33,7 +33,8 @@ int main() {
 
   subhook_t foo_hook = subhook_new((void *)foo,
                                    (void *)foo_hooked,
-                                   SUBHOOK_64BIT_OFFSET);
+                                   SUBHOOK_64BIT_OFFSET
+                                   | SUBHOOK_TRY_ALLOCATE_TRAMPOLINE_NEAR_SOURCE);
   if (foo_hook == NULL || subhook_install(foo_hook) < 0) {
     puts("Install failed");
     return EXIT_FAILURE;
@@ -64,7 +65,8 @@ int main() {
 
   subhook_t foo_hook_tr = subhook_new((void *)foo,
                                       (void *)foo_hooked_tr,
-                                      SUBHOOK_64BIT_OFFSET);
+                                      SUBHOOK_64BIT_OFFSET
+                                      | SUBHOOK_TRY_ALLOCATE_TRAMPOLINE_NEAR_SOURCE);
   if (subhook_install(foo_hook_tr) < 0) {
     puts("Install failed");
     return EXIT_FAILURE;
