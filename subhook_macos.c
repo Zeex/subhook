@@ -24,56 +24,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "subhook.h"
-#include "subhook_private.h"
+#include <stddef.h>
+#include <unistd.h>
+#include <sys/mman.h>
+#include <mach/mach.h>
 
-subhook_disasm_handler_t subhook_disasm_handler = NULL;
+#define SUBHOOK_CODE_PROTECT_FLAGS (PROT_READ | PROT_WRITE | PROT_EXEC)
 
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_src(subhook_t hook) {
-  if (hook == NULL) {
-    return NULL;
+int subhook_unprotect(void *address, size_t size) {
+  long pagesize;
+
+  pagesize = sysconf(_SC_PAGESIZE);
+  address = (void *)((long)address & ~(pagesize - 1));
+	int error = mprotect(address, size, SUBHOOK_CODE_PROTECT_FLAGS);
+
+  if (-1 == error)
+    {
+        // If mprotect fails, try to use VM_PROT_COPY with vm_protect        
+        kern_return_t kret = vm_protect(mach_task_self(), (unsigned long)address, size, 0, SUBHOOK_CODE_PROTECT_FLAGS | VM_PROT_COPY);				
+        if (kret != KERN_SUCCESS)
+        {
+            error = -1;	
+        }
+        error = 0;
+    }				
+
+  return error;
+}
+
+void *subhook_alloc_code(size_t size) {
+  void *address;
+
+  address = mmap(NULL,
+                 size,
+                 SUBHOOK_CODE_PROTECT_FLAGS,
+                 #if defined MAP_32BIT && !defined __APPLE__
+                   MAP_32BIT |
+                 #endif
+                 MAP_PRIVATE | MAP_ANONYMOUS,
+                 -1,
+                 0);
+  return address == MAP_FAILED ? NULL : address;
+}
+
+int subhook_free_code(void *address, size_t size) {
+  if (address == NULL) {
+    return 0;
   }
-  return hook->src;
+  return munmap(address, size);
 }
-
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_dst(subhook_t hook) {
-  if (hook == NULL) {
-    return NULL;
-  }
-  return hook->dst;
-}
-
-SUBHOOK_EXPORT void *SUBHOOK_API subhook_get_trampoline(subhook_t hook) {
-  if (hook == NULL) {
-    return NULL;
-  }
-  return hook->trampoline;
-}
-
-SUBHOOK_EXPORT int SUBHOOK_API subhook_is_installed(subhook_t hook) {
-  if (hook == NULL) {
-    return false;
-  }
-  return hook->installed;
-}
-
-SUBHOOK_EXPORT void SUBHOOK_API subhook_set_disasm_handler(
-  subhook_disasm_handler_t handler) {
-  subhook_disasm_handler = handler;
-}
-
-#ifndef SUBHOOK_SEPARATE_SOURCE_FILES
-
-#if defined SUBHOOK_WINDOWS
-  #include "subhook_windows.c"
-#elif defined SUBHOOK_UNIX
-  #include "subhook_unix.c"
-#elif defined SUBHOOK_APPLE
-  #include "subhook_macos.c"  
-#endif
-
-#if defined SUBHOOK_X86 || defined SUBHOOK_X86_64
-  #include "subhook_x86.c"
-#endif
-
-#endif

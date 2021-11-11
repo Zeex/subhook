@@ -41,9 +41,11 @@
 
 #if defined _WIN32 || defined __CYGWIN__
   #define SUBHOOK_WINDOWS
-#elif defined __linux__ || defined __APPLE__ \
+#elif defined __linux__ \
    || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
   #define SUBHOOK_UNIX
+  #elif defined __APPLE__
+  #define SUBHOOK_APPLE
 #else
   #error Unsupported operating system
 #endif
@@ -65,7 +67,7 @@
   #if defined SUBHOOK_X86
     #if defined SUBHOOK_WINDOWS
       #define SUBHOOK_API __cdecl
-    #elif defined SUBHOOK_UNIX
+    #elif defined SUBHOOK_UNIX || defined SUBHOOK_APPLE
       #define SUBHOOK_API __attribute__((cdecl))
     #endif
   #else
@@ -80,7 +82,7 @@
     #else
       #define SUBHOOK_EXPORT SUBHOOK_EXTERN __declspec(dllimport)
     #endif
-  #elif defined SUBHOOK_UNIX
+  #elif defined SUBHOOK_UNIX || defined SUBHOOK_APPLE
     #if defined SUBHOOK_IMPLEMENTATION
       #define SUBHOOK_EXPORT SUBHOOK_EXTERN __attribute__((visibility("default")))
     #else

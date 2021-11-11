@@ -152,10 +152,8 @@ Known issues
   memory as executable, which prevents the use of trampolines.
 
   For example, on Fedora you can have such problems because of SELinux (though
-  you can disable it or exclude your files). On macOS Catalina the
-  `mprotect()` call inside `subhook_new` will fail with "Permission denied"
-  (see https://github.com/Zeex/subhook/issues/45).
-
+  you can disable it or exclude your files).
+  
 License
 -------
 

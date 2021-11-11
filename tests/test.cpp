@@ -7,7 +7,7 @@ typedef void (*foo_func_t)();
 #ifdef SUBHOOK_X86
   #if defined SUBHOOK_WINDOWS
     #define FOO_CALL __cdecl
-  #elif defined SUBHOOK_UNIX
+  #elif defined SUBHOOK_UNIX || defined SUBHOOK_APPLE
     #define FOO_CALL __attribute__((cdecl))
   #endif
 #endif
