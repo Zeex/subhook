@@ -68,8 +68,6 @@ SUBHOOK_EXPORT void SUBHOOK_API subhook_set_disasm_handler(
   #include "subhook_windows.c"
 #elif defined SUBHOOK_UNIX
   #include "subhook_unix.c"
-#elif defined SUBHOOK_APPLE
-  #include "subhook_macos.c"  
 #endif
 
 #if defined SUBHOOK_X86 || defined SUBHOOK_X86_64
