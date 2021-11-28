@@ -27,6 +27,11 @@
 #include <stddef.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include "subhook.h"
+#ifdef SUBHOOK_APPLE
+#include <mach/mach.h>
+#endif
+
 
 #define SUBHOOK_CODE_PROTECT_FLAGS (PROT_READ | PROT_WRITE | PROT_EXEC)
 
@@ -36,7 +41,20 @@ int subhook_unprotect(void *address, size_t size) {
   pagesize = sysconf(_SC_PAGESIZE);
   address = (void *)((long)address & ~(pagesize - 1));
 
-  return mprotect(address, size, SUBHOOK_CODE_PROTECT_FLAGS);
+  int error = mprotect(address, size, SUBHOOK_CODE_PROTECT_FLAGS);
+#ifdef SUBHOOK_APPLE
+  if (-1 == error)
+    {
+        /* If mprotect fails, try to use VM_PROT_COPY with vm_protect. */
+        kern_return_t kret = vm_protect(mach_task_self(), (unsigned long)address, size, 0, SUBHOOK_CODE_PROTECT_FLAGS | VM_PROT_COPY);				
+        if (kret != KERN_SUCCESS)
+        {
+            error = -1;	
+        }
+        error = 0;
+    }				
+#endif
+  return error;
 }
 
 void *subhook_alloc_code(size_t size) {

@@ -41,8 +41,11 @@
 
 #if defined _WIN32 || defined __CYGWIN__
   #define SUBHOOK_WINDOWS
-#elif defined __linux__ || defined __APPLE__ \
+#elif defined __linux__ \
    || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
+  #define SUBHOOK_UNIX
+  #elif defined __APPLE__
+  #define SUBHOOK_APPLE
   #define SUBHOOK_UNIX
 #else
   #error Unsupported operating system
