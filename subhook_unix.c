@@ -39,14 +39,19 @@ int subhook_unprotect(void *address, size_t size) {
   long pagesize;
 
   pagesize = sysconf(_SC_PAGESIZE);
-  address = (void *)((long)address & ~(pagesize - 1));
+  void *aligned_address = (void *)((long)address & ~(pagesize - 1));
 
-  int error = mprotect(address, size, SUBHOOK_CODE_PROTECT_FLAGS);
+  // Fix up the length - since we rounded the start address off, if a jump is right at the
+  // end of a page we could need to unprotect both.
+  void *end = address + size;
+  size_t new_size = end - aligned_address;
+
+  int error = mprotect(aligned_address, new_size, SUBHOOK_CODE_PROTECT_FLAGS);
 #ifdef SUBHOOK_APPLE
   if (-1 == error)
     {
         /* If mprotect fails, try to use VM_PROT_COPY with vm_protect. */
-        kern_return_t kret = vm_protect(mach_task_self(), (unsigned long)address, size, 0, SUBHOOK_CODE_PROTECT_FLAGS | VM_PROT_COPY);				
+        kern_return_t kret = vm_protect(mach_task_self(), (unsigned long)aligned_address, new_size, 0, SUBHOOK_CODE_PROTECT_FLAGS | VM_PROT_COPY);
         if (kret != KERN_SUCCESS)
         {
             error = -1;	
