@@ -1,22 +1,10 @@
-cmake_minimum_required(VERSION 2.8.12)
-project(subhook C)
+cmake_minimum_required(VERSION 3.10)
 
-if(POLICY CMP0042)
-  cmake_policy(SET CMP0042 NEW)
-endif()
-if(POLICY CMP0054)
-  cmake_policy(SET CMP0054 NEW)
-endif()
+project(subhook VERSION 0.8.2 LANGUAGES C)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-set(SUBHOOK_VERSION_MAJOR 0)
-set(SUBHOOK_VERSION_MINOR 8)
-set(SUBHOOK_VERSION_PATCH 2)
-
-set(SUBHOOK_VERSION ${SUBHOOK_VERSION_MAJOR})
-set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_MINOR})
-set(SUBHOOK_VERSION ${SUBHOOK_VERSION}.${SUBHOOK_VERSION_PATCH})
+include(GNUInstallDirs)
 
 macro(subhook_add_option_var name type default_value description)
   set(${name}_DEFAULT ${default_value})
@@ -41,21 +29,26 @@ elseif(UNIX)
   list(APPEND SUBHOOK_SOURCES subhook_unix.c)
 endif()
 
-add_definitions(-DSUBHOOK_IMPLEMENTATION -DSUBHOOK_SEPARATE_SOURCE_FILES)
-
 if(SUBHOOK_STATIC)
   add_library(subhook STATIC ${SUBHOOK_HEADERS} ${SUBHOOK_SOURCES})
+  target_compile_definitions(subhook PUBLIC SUBHOOK_STATIC)
 else()
   add_library(subhook SHARED ${SUBHOOK_HEADERS} ${SUBHOOK_SOURCES})
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
-             APPEND PROPERTY INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR})
+add_library(subhook::subhook ALIAS subhook)
+
+target_compile_definitions(subhook PUBLIC
+  SUBHOOK_IMPLEMENTATION
+  SUBHOOK_SEPARATE_SOURCE_FILES
+)
+target_include_directories(subhook PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
 
 if(CMAKE_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
-  set_property(TARGET subhook
-               APPEND_STRING PROPERTY COMPILE_FLAGS "-Wall -Wextra")
+  target_compile_options(subhook PRIVATE "-Wall -Wextra")
 endif()
 
 if(SUBHOOK_FORCE_32BIT)
@@ -63,31 +56,49 @@ if(SUBHOOK_FORCE_32BIT)
     set_target_properties(subhook PROPERTIES OSX_ARCHITECTURES i386)
   endif()
   if(UNIX)
-    set_property(TARGET subhook APPEND_STRING PROPERTY
-                 COMPILE_FLAGS " -m32")
-    set_property(TARGET subhook APPEND_STRING PROPERTY LINK_FLAGS " -m32")
+    target_compile_options(subhook PRIVATE "-m32")
+    target_link_options(subhook PRIVATE "-m32")
   endif()
-endif()
-
-if(SUBHOOK_STATIC)
-  add_definitions(-DSUBHOOK_STATIC)
-  set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
-               APPEND PROPERTY COMPILE_DEFINITIONS SUBHOOK_STATIC)
 endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if(SUBHOOK_INSTALL)
-  install(TARGETS subhook LIBRARY DESTINATION lib
-                          ARCHIVE DESTINATION lib
-                          RUNTIME DESTINATION bin)
-  install(FILES ${SUBHOOK_HEADERS} DESTINATION include)
+  include(CMakePackageConfigHelpers)
+
+  install(TARGETS subhook EXPORT ${PROJECT_NAME}Targets
+                          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+  install(FILES ${SUBHOOK_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+  set(config_file ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake)
+  set(version_file ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake)
+  set(config_install_destination lib/cmake/${PROJECT_NAME})
+
+  configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+    ${config_file}
+    INSTALL_DESTINATION ${config_install_destination}
+  )
+
+  write_basic_package_version_file(
+    ${version_file}
+    COMPATIBILITY SameMajorVersion
+  )
+
+  install(FILES ${config_file} ${version_file} DESTINATION ${config_install_destination})
+  install(
+    EXPORT ${PROJECT_NAME}Targets
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION ${config_install_destination}
+  )
 endif()
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PACKAGE_VERSION_MAJOR ${SUBHOOK_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${SUBHOOK_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${SUBHOOK_VERSION_PATCH})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 include(CPack)
 include(CTest)
