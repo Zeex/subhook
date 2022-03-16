@@ -24,7 +24,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <inttypes.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include "subhook.h"
@@ -32,6 +34,8 @@
 #include <mach/mach.h>
 #endif
 
+
+#include "subhook_private.h"
 
 #define SUBHOOK_CODE_PROTECT_FLAGS (PROT_READ | PROT_WRITE | PROT_EXEC)
 
@@ -62,8 +66,51 @@ int subhook_unprotect(void *address, size_t size) {
   return error;
 }
 
-void *subhook_alloc_code(size_t size) {
+
+void *subhook_alloc_code(void* src_addr, size_t size, subhook_flags_t flags) {
+  (void)src_addr;
+  (void)flags;
   void *address;
+#if defined __linux__ && defined MAP_FIXED_NOREPLACE && defined SUBHOOK_X86_64
+  if ((flags & SUBHOOK_TRY_ALLOCATE_TRAMPOLINE_NEAR_SOURCE) != 0) {
+    // Go over /proc/self/maps to find closeby unmapped pages.
+    void* preferred_addr = NULL;
+    FILE* fp = fopen("/proc/self/maps", "r");
+    if (fp != NULL) {
+      int64_t mapped_begin = 0, mapped_end = 0;
+      while (!feof(fp)) {
+        int64_t prev_mapped_end = mapped_end;
+        fscanf(fp, "%lx-%lx", &mapped_begin, &mapped_end);
+
+        // Assume the /proc/self/maps file is sorted by mem addr.
+        // Find first unmapped mem range above src_addr.
+        if ((int64_t)src_addr < prev_mapped_end
+            && prev_mapped_end + size <= mapped_begin) {
+          preferred_addr = (void*)prev_mapped_end;
+          break;
+        }
+
+        // We only need begin/end of mem range, skip other info in the line.
+        while (!feof(fp) && fgetc(fp) != '\n') {
+          ;
+        }
+      }
+      fclose(fp);
+    }
+
+    if (preferred_addr != NULL) {
+      address = mmap(preferred_addr,
+                     size,
+                     SUBHOOK_CODE_PROTECT_FLAGS,
+                     MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED_NOREPLACE,
+                     -1,
+                     0);
+      if (address != MAP_FAILED) {
+        return address;
+      }
+    }
+  }
+#endif // __linux__ && MAP_FIXED_NOREPLACE && SUBHOOK_X86_64
 
   address = mmap(NULL,
                  size,
