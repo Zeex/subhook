@@ -30,9 +30,10 @@ void foo_hooked_tr() {
 int main() {
   std::cout << "Testing initial install" << std::endl;
 
-  subhook::Hook foo_hook((void *)foo,
-                         (void *)foo_hooked,
-                         subhook::HookFlag64BitOffset);
+  subhook::Hook foo_hook(
+    (void *)foo,
+    (void *)foo_hooked,
+    subhook::HookFlag64BitOffset | subhook::HookFlagTrampoline);
   if (!foo_hook.Install()) {
     std::cout << "Install failed" << std::endl;
     return EXIT_FAILURE;
@@ -59,9 +60,10 @@ int main() {
 
   std::cout << "Testing trampoline" << std::endl;
 
-  subhook::Hook foo_hook_tr((void *)foo,
-                            (void *)foo_hooked_tr,
-                            subhook::HookFlag64BitOffset);
+  subhook::Hook foo_hook_tr(
+    (void *)foo,
+    (void *)foo_hooked_tr,
+    subhook::HookFlag64BitOffset | subhook::HookFlagTrampoline);
   if (!foo_hook_tr.Install()) {
     std::cout << "Install failed" << std::endl;
     return EXIT_FAILURE;

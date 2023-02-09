@@ -32,7 +32,7 @@
 #if defined _M_IX86 || defined __i386__
   #define SUBHOOK_X86
   #define SUBHOOK_BITS 32
-#elif defined _M_AMD64 || __amd64__
+#elif defined _M_AMD64 || defined __amd64__
   #define SUBHOOK_X86_64
   #define SUBHOOK_BITS 64
 #else
@@ -44,7 +44,7 @@
 #elif defined __linux__ \
    || defined __FreeBSD__ || defined __OpenBSD__ || defined __NetBSD__
   #define SUBHOOK_UNIX
-  #elif defined __APPLE__
+#elif defined __APPLE__
   #define SUBHOOK_APPLE
   #define SUBHOOK_UNIX
 #else
@@ -93,8 +93,38 @@
 #endif
 
 typedef enum subhook_flags {
-  /* Use the 64-bit jump method on x86-64 (requires more space). */
-  SUBHOOK_64BIT_OFFSET = 1
+  /*
+   * Use the 64-bit jump method on x86-64. Unlike the classical 32-bit JMP,
+   * this approach ensures that the destination code can be reached from any
+   * point in the 64-bit address space, even if the source and destination are
+   * more than 4GB away from each other (meaning we are not limited to using
+   * JMP 32-bit offsets).
+   *
+   * Keep in mind that it requires overwriting a few more leading instructions
+   * inside the target code, thus it may not work with extremely short
+   * functions (14 bytes vs 5 bytes).
+   *
+   * Credits to @Ozymandias117 and @RomanHargrave on GitHub for implementing
+   * this in subhook.
+   */
+  SUBHOOK_64BIT_OFFSET = 0x01,
+  /*
+   * Generate a trampoline for jumping back to the original code faster (without
+   * removing the hook each time).
+   *
+   * In some scenarios, trampolines cannot be created. See "Known limitations"
+   * in the README file.
+   */
+  SUBHOOK_TRAMPOLINE = 0x02,
+  /*
+   * Windows x64 only: Try to allocate a trampoline buffer within +/- 2GB range
+   * of the original function to overcome a possible issue with relocating memory
+   * referencing instructions, particularly those which use RIP-relative
+   * addresses (i.e. with 32-bit offsets).
+   *
+   * Caution: this feature may slow down your code.
+   */
+  SUBHOOK_TRAMPOLINE_ALLOC_NEARBY = 0x04
 } subhook_flags_t;
 
 struct subhook_struct;
@@ -149,7 +179,9 @@ namespace subhook {
 
 enum HookFlags {
   HookNoFlags = 0,
-  HookFlag64BitOffset = SUBHOOK_64BIT_OFFSET
+  HookFlag64BitOffset = SUBHOOK_64BIT_OFFSET,
+  HookFlagTrampoline = SUBHOOK_TRAMPOLINE,
+  HookFlagTrampolineAllocNearby = SUBHOOK_TRAMPOLINE_ALLOC_NEARBY
 };
 
 inline HookFlags operator|(HookFlags o1, HookFlags o2) {

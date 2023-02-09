@@ -488,18 +488,22 @@ SUBHOOK_EXPORT subhook_t SUBHOOK_API subhook_new(void *src,
     goto error_exit;
   }
 
-  hook->trampoline = subhook_alloc_code(hook->trampoline_size);
-  if (hook->trampoline != NULL) {
-    error = subhook_make_trampoline(hook->trampoline,
-                                    hook->src,
-                                    hook->jmp_size,
-                                    &hook->trampoline_len,
-                                    hook->flags);
-    if (error != 0) {
-      subhook_free_code(hook->trampoline, hook->trampoline_size);
-      hook->trampoline = NULL;
-      hook->trampoline_size = 0;
-      hook->trampoline_len = 0;
+  if (hook->flags & SUBHOOK_TRAMPOLINE) {
+    hook->trampoline = subhook_alloc_code(
+      (hook->flags & SUBHOOK_TRAMPOLINE_ALLOC_NEARBY) ? hook->src : NULL,
+      hook->trampoline_size);
+    if (hook->trampoline != NULL) {
+      error = subhook_make_trampoline(hook->trampoline,
+                                      hook->src,
+                                      hook->jmp_size,
+                                      &hook->trampoline_len,
+                                      hook->flags);
+      if (error != 0) {
+        subhook_free_code(hook->trampoline, hook->trampoline_size);
+        hook->trampoline = NULL;
+        hook->trampoline_size = 0;
+        hook->trampoline_len = 0;
+      }
     }
   }
 
