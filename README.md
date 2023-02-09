@@ -130,8 +130,8 @@ int main() {
 }
 ```
 
-Known issues
-------------
+Known issues/limitations
+------------------------
 
 * `subhook_get_trampoline()` may return NULL because only a small subset of
   x86 instructions is supported by the disassembler in this library (just
@@ -146,6 +146,14 @@ Known issues
   N is 5 by default: 1 byte for jmp opcode + 4 bytes for offset. But if you
   enable the use of 64-bit offsets in 64-bit mode N becomes 14 (see the
   definition of `subhook_jmp64`).
+  
+  On x64_64, another cause could be that the function contains instructions
+  referencing memory that is too far away from the trampline code buffer's
+  address `trampoline_addr`, such as `cmp dword ptr [some_32bit_addr], rax`
+  (i.e. RIP-relative addressing) where the offset between `some_32bit_addr`
+  and `trampoline_addr` cannot fit into 32 bits, and therefore we cannot
+  update the memory address referenced in the original code (we need to do
+  that because because it's relative).
 
 * Some systems protect executable code form being modified at runtime, which
   will not allow you to install hooks, or don't allow to mark heap-allocated
@@ -153,7 +161,7 @@ Known issues
 
   For example, on Fedora you can have such problems because of SELinux (though
   you can disable it or exclude your files).
-  
+ 
 License
 -------
 
