@@ -41,12 +41,12 @@ int subhook_unprotect(void *address, size_t size) {
 }
 
 void *subhook_alloc_code(void *target_address, size_t size) {
-  SYSTEM_INFO sys_info;
-  DWORD page_size = 0x1000;
-  QWORD offset;
-
 #if defined _M_AMD64 || defined __amd64__
   if (target_address != NULL) {
+    SYSTEM_INFO sys_info;
+    DWORD page_size;
+    QWORD offset;
+
     GetSystemInfo(&sys_info);
     page_size = sys_info.dwPageSize;
 
