@@ -48,7 +48,7 @@ target_include_directories(subhook PUBLIC
 )
 
 if(CMAKE_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
-  target_compile_options(subhook PRIVATE "-Wall -Wextra")
+  target_compile_options(subhook PRIVATE -Wall -Wextra)
 endif()
 
 if(SUBHOOK_FORCE_32BIT)
